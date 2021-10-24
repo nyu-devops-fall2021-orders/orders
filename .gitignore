@@ -136,3 +136,6 @@ dmypy.json
 
 # Windows thumb.db
 thumbs.db
+
+# Vagrant folder
+.vagrant
