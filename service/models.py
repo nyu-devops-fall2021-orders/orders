@@ -139,7 +139,7 @@ class Order(db.Model, PersistentBase):
 
     def __repr__(self):
         #return "<Order %r>" % self.id
-        return f"User('{self.id}', '{self.customer_id}', '{self.created_at}', '{self.tracking_id}')"
+        return f"Order('{self.id}', '{self.customer_id}', '{self.created_at}', '{self.tracking_id}')"
 
 
 
