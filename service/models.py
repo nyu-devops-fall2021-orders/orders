@@ -12,13 +12,68 @@ class DataValidationError(Exception):
 
     pass
 
+DATETIME_FORMAT='%Y-%m-%d %H:%M:%S.%f'
+
 class OrderStatus(Enum):
     Created = 0
     Paid = 1
     Completed = 2
     Cancelled = 3
 
-class OrderItem(db.Model):
+class PersistentBase():
+    """ Base class added persistent methods """
+
+    def create(self):
+        """
+        Creates a Account to the database
+        """
+        logger.info("Creating %s", self.id)
+        self.id = None  # id must be none to generate next primary key
+        db.session.add(self)
+        db.session.commit()
+
+    def save(self):
+        """
+        Updates a Account to the database
+        """
+        logger.info("Saving %s", self.id)
+        db.session.commit()
+
+    def delete(self):
+        """ Removes a Account from the data store """
+        logger.info("Deleting %s", self.id)
+        db.session.delete(self)
+        db.session.commit()
+
+    @classmethod
+    def init_db(cls, app):
+        """ Initializes the database session """
+        logger.info("Initializing database")
+        cls.app = app
+        # This is where we initialize SQLAlchemy from the Flask app
+        db.init_app(app)
+        app.app_context().push()
+        db.create_all()  # make our sqlalchemy tables
+
+    @classmethod
+    def all(cls):
+        """ Returns all of the records in the database """
+        logger.info("Processing all records")
+        return cls.query.all()
+
+    @classmethod
+    def find(cls, by_id):
+        """ Finds a record by it's ID """
+        logger.info("Processing lookup for id %s ...", by_id)
+        return cls.query.get(by_id)
+
+    @classmethod
+    def find_or_404(cls, by_id):
+        """ Find a record by it's id """
+        logger.info("Processing lookup or 404 for id %s ...", by_id)
+        return cls.query.get_or_404(by_id)
+
+class OrderItem(db.Model, PersistentBase):
     """ Class that represents an Order Item """
     app = None
 
@@ -30,7 +85,18 @@ class OrderItem(db.Model):
     
 
     def __repr__(self):
-        return "<OrderItem %r>" % self.item_id
+        return f"Order Item('{self.id}', '{self.product_id}', '{self.quantity}', '{self.price}', '{self.order_id}')"
+        #return "<OrderItem %r>" % self.item_id
+
+    def serialize(self):
+        """ Serializes a Address into a dictionary """
+        return {
+            "id": self.id,
+            "product_id": self.product_id,
+            "quantity": self.quantity,
+            "price": self.price,
+            "order_id": self.order_id,
+        }
 
     def deserialize(self, data: dict):
         """
@@ -39,11 +105,11 @@ class OrderItem(db.Model):
             data (dict): A dictionary containing the Order Item data
         """
         try:
-            self.id = data["id"]
+            #self.id = data["id"]
             self.product_id = data["product_id"]
             self.quantity = data["quantity"]
             self.price = data["price"]
-            self.order_id = data["order_id"]
+            #self.order_id = data["order_id"]
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0])
         except KeyError as error:
@@ -54,32 +120,8 @@ class OrderItem(db.Model):
             )
         return self
 
-    def create(self):
-        """
-        Creates a Pet to the database
-        """
-        logger.info("Creating %s", self.id)
-        self.id = None  # id must be none to generate next primary key
-        db.session.add(self)
-        db.session.commit()
 
-    @classmethod
-    def init_db(cls, app):
-        """ Initializes the database session """
-        cls.app = app
-        # This is where we initialize SQLAlchemy from the Flask app
-        db.init_app(app)
-        app.app_context().push()
-        db.create_all()
-    
-    def all(cls):
-        """ Returns all of the Pets in the database """
-        return cls.query.all()
-
-    
-
-
-class Order(db.Model):
+class Order(db.Model, PersistentBase):
     """
     Class that represents an Order
     """
@@ -96,8 +138,8 @@ class Order(db.Model):
     order_items = db.relationship('OrderItem', backref='order', cascade="all, delete", lazy=True)
 
     def __repr__(self):
-        return "<Order %r>" % self.id
-        # return f"User('{self.username}', '{self.email}', '{self.image_file}')"
+        #return "<Order %r>" % self.id
+        return f"User('{self.id}', '{self.customer_id}', '{self.created_at}', '{self.tracking_id}')"
 
 
 
@@ -107,23 +149,25 @@ class Order(db.Model):
     def __repr__(self):
         return "<Order %r id=[%s]>" % (self.order_id, self.id)'''
 
-    def create(self):
-        """
-        Creates an Order in the database
-        """
-        self.id = None  # id must be none to generate next primary key
-        #self.order_id = 100
-        db.session.add(self)
-        db.session.commit()
+    def serialize(self):
+        """ Serializes a Address into a dictionary """
+        return {
+            "id": self.id,
+            "customer_id": self.customer_id,
+            "created_at": self.created_at,
+            "updated_at": self.updated_at,
+            "tracking_id": self.tracking_id,
+            "status": self.status.name,
+        }
     
     def deserialize(self, data: dict):
         """
-        Deserializes a Pet from a dictionary
+        Deserializes a Order from a dictionary
         Args:
-            data (dict): A dictionary containing the Pet data
+            data (dict): A dictionary containing the Order data
         """
         try:
-            self.id = data["id"]
+            #self.id = data["id"]
             self.customer_id = data["customer_id"]
             # The values given to created_at and updated_at by JSON are strings.
             # They get updated to  Datetime variables automatically when create() used.
@@ -135,23 +179,12 @@ class Order(db.Model):
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0])
         except KeyError as error:
-            raise DataValidationError("Invalid pet: missing " + error.args[0])
+            raise DataValidationError("Invalid Order: missing " + error.args[0])
         except TypeError as error:
             raise DataValidationError(
-                "Invalid pet: body of request contained bad or no data"
+                "Invalid Order: body of request contained bad or no data"
             )
         return self
-    
-    @classmethod
-    def init_db(cls, app):
-        """ Initializes the database session """
-        cls.app = app
-        # This is where we initialize SQLAlchemy from the Flask app
-        db.init_app(app)
-        app.app_context().push()
-        db.create_all()  # make our sqlalchemy tables
 
-    @classmethod
-    def all(cls):
-        """ Returns all of the Pets in the database """
-        return cls.query.all()
+
+

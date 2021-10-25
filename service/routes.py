@@ -1,6 +1,11 @@
-from . import app
-from flask import Flask, jsonify, request#, url_for, make_response, abort
+from flask import Flask, jsonify, request, url_for, make_response, abort
+#from flask_api import status  # HTTP Status Codes
+
+from werkzeug.exceptions import NotFound
+
 from service.models import OrderItem, Order
+
+from . import app
 #@app.route('/index')
 @app.route('/')
 
@@ -21,23 +26,27 @@ def init_db():
     OrderItem.init_db(app)
     Order.init_db(app)
 
-@app.route("/createitem", methods=["POST"])
-def create_item():
+@app.route("/order/<int:order_id>/orderitem", methods=["POST"])
+def create_item(order_id):
     """
-    Creates a Pet
-    This endpoint will create a Pet based the data in the body that is posted
+    Creates an Order Item associated with an Order
+    
     """
-    app.logger.info("Request to create an order")
+    app.logger.info("Request to create an order item")
+    order = Order.find_or_404(order_id)
     orderItem = OrderItem()
     orderItem.deserialize(request.get_json())
-   
-    return str(orderItem.price)
+    order.order_items.append(orderItem)
+    #orderItem.create()
+    order.save()
+    message = orderItem.serialize()
+    return make_response(jsonify(message))
 
-@app.route("/create", methods=["POST"])
+@app.route("/order", methods=["POST"])
 def create_order():
     """
-    Creates a Pet
-    This endpoint will create a Pet based the data in the body that is posted
+    Creates an Order
+    
     """
     app.logger.info("Request to create an order")
     #check_content_type("application/json")
@@ -45,10 +54,41 @@ def create_order():
     order = Order()
     order.deserialize(request.get_json())
     order.create()
-    
-    return str(order.updated_at)
+    message = order.serialize()
+    return make_response(jsonify(message))
 
     #return str(type(order.created_at))
     #"make_response(
     #    jsonify(message), status.HTTP_201_CREATED, {"Location": location_url}
     #)"
+
+@app.route("/order/<int:order_id>/orderitem/<int:item_id>", methods=["GET"])
+def get_item(order_id, item_id):
+    """
+    Retrieve a single Order Item
+    This endpoint will return a item based on it's id
+    """
+    app.logger.info("Request for order item with id: %s", item_id)
+    orderitem = OrderItem.find_or_404(item_id)
+    #return str(orderitem)
+    return make_response(jsonify(orderitem.serialize()))
+
+@app.route("/order/<int:order_id>", methods=["GET"])
+def get_order(order_id):
+    """
+    Retrieve a single Order
+    This endpoint will return a order based on it's id
+    """
+    app.logger.info("Request for order with id: %s", order_id)
+    order = Order.find_or_404(order_id)
+    #return str(order)
+    return make_response(jsonify(order.serialize()))
+
+@app.route('/listorders')
+def listorders():
+    return str(Order.all())
+
+@app.route('/listorderitems')
+def listorderitems():
+    """ Root URL response """
+    return str(OrderItem.all())
