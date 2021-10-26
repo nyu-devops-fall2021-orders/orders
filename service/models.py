@@ -25,22 +25,22 @@ class PersistentBase():
 
     def create(self):
         """
-        Creates a Account to the database
+        Creates an Order or Order Item to the database
         """
         logger.info("Creating %s", self.id)
         self.id = None  # id must be none to generate next primary key
         db.session.add(self)
         db.session.commit()
 
-    def save(self):
+    def update(self):
         """
-        Updates a Account to the database
+        Updates an Order or Order Item to the database
         """
-        logger.info("Saving %s", self.id)
+        logger.info("Updating %s", self.id)
         db.session.commit()
 
     def delete(self):
-        """ Removes a Account from the data store """
+        """ Removes an Order or Order Item from the database """
         logger.info("Deleting %s", self.id)
         db.session.delete(self)
         db.session.commit()
@@ -86,7 +86,6 @@ class OrderItem(db.Model, PersistentBase):
 
     def __repr__(self):
         return f"Order Item('{self.id}', '{self.product_id}', '{self.quantity}', '{self.price}', '{self.order_id}')"
-        #return "<OrderItem %r>" % self.item_id
 
     def serialize(self):
         """ Serializes a Address into a dictionary """
@@ -105,11 +104,9 @@ class OrderItem(db.Model, PersistentBase):
             data (dict): A dictionary containing the Order Item data
         """
         try:
-            #self.id = data["id"]
             self.product_id = data["product_id"]
             self.quantity = data["quantity"]
             self.price = data["price"]
-            #self.order_id = data["order_id"]
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0])
         except KeyError as error:
@@ -129,8 +126,6 @@ class Order(db.Model, PersistentBase):
     app = None
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, nullable=False)
-    created_at = db.Column(db.DateTime(), default=datetime.now)
-    updated_at = db.Column(db.DateTime(), default=datetime.now)
     tracking_id = db.Column(db.Integer)
     status = db.Column(
         db.Enum(OrderStatus), nullable=False, server_default=(OrderStatus.Created.name)
@@ -138,8 +133,7 @@ class Order(db.Model, PersistentBase):
     order_items = db.relationship('OrderItem', backref='order', cascade="all, delete", lazy=True)
 
     def __repr__(self):
-        #return "<Order %r>" % self.id
-        return f"Order('{self.id}', '{self.customer_id}', '{self.created_at}', '{self.tracking_id}')"
+        return f"Order('{self.id}', '{self.customer_id}', '{self.tracking_id}', '{self.status}')"
 
 
 
@@ -151,13 +145,16 @@ class Order(db.Model, PersistentBase):
 
     def serialize(self):
         """ Serializes a Address into a dictionary """
+        order_items = []
+        for order_item in self.order_items:
+            order_items.append(OrderItem.serialize(order_item))
+
         return {
             "id": self.id,
             "customer_id": self.customer_id,
-            "created_at": self.created_at,
-            "updated_at": self.updated_at,
             "tracking_id": self.tracking_id,
             "status": self.status.name,
+            "order_items": order_items,
         }
     
     def deserialize(self, data: dict):
@@ -167,14 +164,14 @@ class Order(db.Model, PersistentBase):
             data (dict): A dictionary containing the Order data
         """
         try:
-            #self.id = data["id"]
             self.customer_id = data["customer_id"]
-            # The values given to created_at and updated_at by JSON are strings.
-            # They get updated to  Datetime variables automatically when create() used.
-            self.created_at = data["created_at"]
-            self.updated_at = data["updated_at"]
             self.tracking_id = data["tracking_id"]
-            #self.order_items = data["order_items"]
+
+            if "order_items" in data:
+                self.order_items = []
+                for order_item in data["order_items"]:
+                    orderItem = OrderItem()
+                    self.order_items.append(orderItem.deserialize(order_item))
             self.status = getattr(OrderStatus, data["status"])
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0])

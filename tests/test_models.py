@@ -66,8 +66,6 @@ class TestYourResourceModel(unittest.TestCase):
         self.assertEqual(order.id, None)
         self.assertEqual(order.customer_id, 123)
         self.assertEqual(len(order.order_items), 1)
-        self.assertEqual(order.created_at, None)
-        self.assertEqual(order.updated_at, None)
         self.assertEqual(order.status,OrderStatus.Created)
         self.assertEqual(order.tracking_id,None)
         
