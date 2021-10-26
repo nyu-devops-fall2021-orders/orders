@@ -104,9 +104,16 @@ class OrderItem(db.Model, PersistentBase):
             data (dict): A dictionary containing the Order Item data
         """
         try:
+            if "id" in data:
+                self.id = data["id"]
+            
             self.product_id = data["product_id"]
             self.quantity = data["quantity"]
             self.price = data["price"]
+
+            if "order_id" in data:
+                self.order_id = data["order_id"]
+
         except AttributeError as error:
             raise DataValidationError("Invalid attribute: " + error.args[0])
         except KeyError as error:
@@ -135,14 +142,6 @@ class Order(db.Model, PersistentBase):
     def __repr__(self):
         return f"Order('{self.id}', '{self.customer_id}', '{self.tracking_id}', '{self.status}')"
 
-
-
-    '''id = db.Column(db.Integer, primary_key=True)
-    order_id = db.Column(db.Integer,)
-
-    def __repr__(self):
-        return "<Order %r id=[%s]>" % (self.order_id, self.id)'''
-
     def serialize(self):
         """ Serializes a Address into a dictionary """
         order_items = []
@@ -164,6 +163,9 @@ class Order(db.Model, PersistentBase):
             data (dict): A dictionary containing the Order data
         """
         try:
+            if "id" in data:
+                self.id = data["id"]
+            
             self.customer_id = data["customer_id"]
             self.tracking_id = data["tracking_id"]
 
@@ -182,6 +184,3 @@ class Order(db.Model, PersistentBase):
                 "Invalid Order: body of request contained bad or no data"
             )
         return self
-
-
-

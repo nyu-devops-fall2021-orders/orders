@@ -10,9 +10,8 @@ def index():
     """ Root URL response """
     return (
         jsonify(
-            name="Pet Demo REST API Service",
+            name="Orders REST API Service",
             version="1.0",
-            paths=url_for("list_pets", _external=True),
         ),
         status.HTTP_200_OK,
     )
@@ -99,6 +98,7 @@ def update_item(order_id, item_id):
     orderItem = OrderItem.find_or_404(item_id)
     orderItem.deserialize(request.get_json())
     orderItem.id = item_id
+    orderItem.order_id = order_id
     orderItem.update()
     return make_response(
         jsonify(orderItem.serialize()), status.HTTP_200_OK
@@ -119,7 +119,7 @@ def delete_item(order_id, item_id):
     item = OrderItem.find(item_id)
     if item:
         item.delete()
-    return make_response("deleted item")
+    return make_response("", status.HTTP_204_NO_CONTENT)
 
 ######################################################################
 # CREATE AN ORDER
@@ -177,11 +177,11 @@ def update_order(order_id):
     """
     app.logger.info("Request to update order with order_id: %s", order_id)
     order = Order.find_or_404(order_id)
-    existing_order_items = order.order_items
-    order.deserialize(request.get_json())
+    data = request.get_json()
+    del data["order_items"]
+    order.deserialize(data)
     
     order.id = order_id
-    order.order_items = existing_order_items
     order.update()
     return make_response(
         jsonify(order.serialize()), status.HTTP_200_OK
@@ -200,4 +200,4 @@ def delete_order(order_id):
     order = Order.find(order_id)
     if order:
         order.delete()
-    return make_response("deleted")
+    return make_response("", status.HTTP_204_NO_CONTENT)
