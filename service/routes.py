@@ -85,7 +85,7 @@ def get_order(order_id):
     return make_response(jsonify(order.serialize()))
 
 @app.route("/order/<int:order_id>", methods=["DELETE"])
-def delete_accounts(order_id):
+def delete_order(order_id):
     """
     Delete an Order
     This endpoint will delete an Order based the id specified in the path
@@ -97,7 +97,7 @@ def delete_accounts(order_id):
     return make_response("deleted")
 
 @app.route("/order/<int:order_id>/orderitem/<int:item_id>", methods=["DELETE"])
-def delete_addresses(order_id, item_id):
+def delete_item(order_id, item_id):
     """
     Delete an Order Item
     This endpoint will delete an item based the id specified in the path
@@ -108,6 +108,21 @@ def delete_addresses(order_id, item_id):
         item.delete()
     return make_response("deleted item")
 
+@app.route("/order", methods=["GET"])
+def list_orders():
+    """ Returns all of the Orders """
+    app.logger.info("Request for Order list")
+    orders = Order.all()
+    results = [order.serialize() for order in orders]
+    return make_response(jsonify(results))
+
+@app.route("/order/<int:order_id>/orderitem", methods=["GET"])
+def list_items(order_id):
+    """ Returns all of the items for an Order """
+    app.logger.info("Request for Order Item...")
+    order = Order.find_or_404(order_id)
+    results = [item.serialize() for item in order.order_items]
+    return make_response(jsonify(results))
 
 @app.route('/listorders')
 def listorders():
