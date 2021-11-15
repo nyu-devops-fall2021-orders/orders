@@ -1,4 +1,5 @@
-[![Build Status](https://app.travis-ci.com/valay-shah/devops.svg?branch=main)](https://app.travis-ci.com/valay-shah/devops)
+
+[![Build Status](https://app.travis-ci.com/nyu-devops-fall2021-orders/orders.svg?branch=main)](https://app.travis-ci.com/nyu-devops-fall2021-orders/orders)
 
 # orders
 This repo maintains the orders API for the ecommerce website being developed by NYU DevOps Fall 2021.
