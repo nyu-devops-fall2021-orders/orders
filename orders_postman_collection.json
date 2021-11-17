@@ -1,8 +1,8 @@
 {
 	"info": {
-		"_postman_id": "01fb3214-813b-418f-83a5-e14a7e9bb252",
+		"_postman_id": "d85d3ced-3692-4716-8375-8bd82ebab943",
 		"name": "Orders - DevOps",
-		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+		"schema": "https://schema.getpostman.com/json/collection/v2.0.0/collection.json"
 	},
 	"item": [
 		{
@@ -19,16 +19,7 @@
 					"mode": "raw",
 					"raw": "{\n    \"customer_id\": 201,\n    \"tracking_id\": 1001,\n    \"status\": \"Created\",\n    \"order_items\": [\n        {\n            \"product_id\": 101,\n            \"quantity\": 1,\n            \"price\": 10.50\n        },\n        {\n            \"product_id\": 1102,\n            \"quantity\": 1,\n            \"price\": 10.50\n        }\n    ]\n}"
 				},
-				"url": {
-					"raw": "http://localhost:5000/order",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"order"
-					]
-				}
+				"url": "localhost:5000/order"
 			},
 			"response": []
 		},
@@ -37,18 +28,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": {
-					"raw": "http://localhost:5000/order/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"order",
-						"1"
-					]
-				}
+				"url": "http://localhost:5000/order/1"
 			},
 			"response": []
 		},
@@ -57,17 +37,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": {
-					"raw": "http://localhost:5000/order",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"order"
-					]
-				}
+				"url": "http://localhost:5000/order"
 			},
 			"response": []
 		},
@@ -85,17 +55,7 @@
 					"mode": "raw",
 					"raw": "{\n    \"customer_id\": 202,\n    \"tracking_id\": 1001,\n    \"status\": \"Completed\"\n}"
 				},
-				"url": {
-					"raw": "localhost:5000/order/1",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"order",
-						"1"
-					]
-				}
+				"url": "localhost:5000/order/1"
 			},
 			"response": []
 		},
@@ -104,18 +64,7 @@
 			"request": {
 				"method": "DELETE",
 				"header": [],
-				"url": {
-					"raw": "http://localhost:5000/order/2",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"order",
-						"2"
-					]
-				}
+				"url": "http://localhost:5000/order/2"
 			},
 			"response": []
 		},
@@ -133,18 +82,7 @@
 						}
 					}
 				},
-				"url": {
-					"raw": "localhost:5000/order/1/orderitem",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"order",
-						"1",
-						"orderitem"
-					]
-				}
+				"url": "localhost:5000/order/1/orderitem"
 			},
 			"response": []
 		},
@@ -153,20 +91,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": {
-					"raw": "http://localhost:5000/order/1/orderitem/1",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"order",
-						"1",
-						"orderitem",
-						"1"
-					]
-				}
+				"url": "http://localhost:5000/order/1/orderitem/1"
 			},
 			"response": []
 		},
@@ -175,19 +100,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": {
-					"raw": "http://localhost:5000/order/1/orderitem",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"order",
-						"1",
-						"orderitem"
-					]
-				}
+				"url": "http://localhost:5000/order/1/orderitem"
 			},
 			"response": []
 		},
@@ -196,17 +109,7 @@
 			"request": {
 				"method": "GET",
 				"header": [],
-				"url": {
-					"raw": "http://localhost:5000/listorderitems",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"listorderitems"
-					]
-				}
+				"url": "http://localhost:5000/listorderitems"
 			},
 			"response": []
 		},
@@ -224,19 +127,7 @@
 						}
 					}
 				},
-				"url": {
-					"raw": "http://localhost:5000/order/1/orderitem/3",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"order",
-						"1",
-						"orderitem",
-						"3"
-					]
-				}
+				"url": "localhost:5000/order/1/orderitem/3"
 			},
 			"response": []
 		},
@@ -245,20 +136,16 @@
 			"request": {
 				"method": "DELETE",
 				"header": [],
-				"url": {
-					"raw": "http://localhost:5000/order/1/orderitem/4",
-					"protocol": "http",
-					"host": [
-						"localhost"
-					],
-					"port": "5000",
-					"path": [
-						"order",
-						"1",
-						"orderitem",
-						"4"
-					]
-				}
+				"url": "http://localhost:5000/order/1/orderitem/4"
+			},
+			"response": []
+		},
+		{
+			"name": "Cancel Order - Action",
+			"request": {
+				"method": "GET",
+				"header": [],
+				"url": null
 			},
 			"response": []
 		}

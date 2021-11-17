@@ -1,7 +1,7 @@
 from flask import jsonify, request, url_for, make_response
 from . import status  # HTTP Status Codes
 
-from service.models import OrderItem, Order
+from service.models import OrderItem, Order, OrderStatus
 
 from . import app
 
@@ -182,6 +182,28 @@ def update_order(order_id):
     order.deserialize(data)
     
     order.id = order_id
+    order.update()
+    return make_response(
+        jsonify(order.serialize()), status.HTTP_200_OK
+    )
+
+######################################################################
+# ACTION TO CANCEL AN EXISTING ORDER
+######################################################################
+@app.route("/order/<int:order_id>/cancel", methods=["PUT"])
+def cancel_order(order_id):
+    """
+    Cancel an Order
+    This endpoint will cancel an order
+    """
+    app.logger.info("Action to cancel order with order_id: %s", order_id)
+    order = Order.find_or_404(order_id)
+    #data = request.get_json()
+    #del data["order_items"]
+    #order.deserialize(data)
+    
+    #order.id = order_id
+    order.status = OrderStatus.Cancelled
     order.update()
     return make_response(
         jsonify(order.serialize()), status.HTTP_200_OK
