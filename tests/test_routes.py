@@ -181,24 +181,26 @@ class TestYourResourceServer(TestCase):
     def test_action_status(self):
         """ change the status of an order to cancelled """
         # create an Action to change order status to canceled
-        order_item = OrderItem(product_id=1, quantity=1, price=5, order_id = 1)
-        order = Order(customer_id=1, tracking_id=1, status=OrderStatus.Created, order_items=[order_item])
-        resp = self.app.post(
-            "/order", 
-            json=order.serialize(), 
-            content_type="application/json"
-        )
-        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+        order = self._create_orders(1)[0]
+        order.create()
+        self.assertEqual(order.status , OrderStatus.Created)
 
         # Action to cancel the order
-        #new_order = resp.get_json()
-        #new_order["status"] = OrderStatus.Cancelled
         resp = self.app.put(
-            "/order/1/cancel"
-        )
+            "/order/{}/cancel".format(order.id)
+        )            
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         updated_order = resp.get_json()
         self.assertEqual(updated_order["status"], OrderStatus.Cancelled.name)
+
+        # Get order
+        resp = self.app.get(
+            "/order/{}".format(order.id), 
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(data["status"], OrderStatus.Cancelled.name)
 
 
     # Order Items
