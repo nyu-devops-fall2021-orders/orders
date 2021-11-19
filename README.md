@@ -1,5 +1,5 @@
 
-![example workflow](https://github.com/nyu-devops-fall2021-orders/orders/actions/workflows/learn-github-actions/badge.svg)
+![Build Status](https://github.com/nyu-devops-fall2021-orders/orders/actions/workflows/main.yml/badge.svg)
 
 # orders
 This repo maintains the orders API for the ecommerce website being developed by NYU DevOps Fall 2021.
