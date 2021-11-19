@@ -44,4 +44,4 @@ git push // push your changes to github
 2. Create a Pull Request (PR) from your branch to the main branch
 3. Share the PR link on Slack (or add reviewers on the sidebar)
 4. Once the PR has been approved, it can be merged
-5. Hooray, it's done!!
+5. Hooray, it's done!!!
