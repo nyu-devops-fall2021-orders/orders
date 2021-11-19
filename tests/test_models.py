@@ -3,6 +3,7 @@ Test cases for Order and OrderItem Models
 """
 import logging
 import unittest
+import factories
 import os
 from service.models import Order, OrderItem, db, OrderStatus, DataValidationError
 from datetime import datetime
@@ -244,3 +245,9 @@ class TestYourResourceModel(unittest.TestCase):
         # Fetch it back again
         order = Order.find(order.id)
         self.assertEqual(len(order.order_items), 0)
+
+    def test_filter_orders_by_status(self):
+        """ Get orders filtered by status """
+        order = factories.OrderFactory(items=0,status=OrderStatus.Cancelled)
+        order.create()
+        
