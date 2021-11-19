@@ -248,6 +248,25 @@ class TestYourResourceModel(unittest.TestCase):
 
     def test_filter_orders_by_status(self):
         """ Get orders filtered by status """
-        order = factories.OrderFactory(items=0,status=OrderStatus.Cancelled)
+        order = factories.OrderFactory(status=OrderStatus.Cancelled)
         order.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertEqual(order.id, 1)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+
+
+        # Fetch filtered orders - different status
+        orders = Order.find_by_status(OrderStatus.Completed)
+        print('first', orders)
+        self.assertEqual(len(orders), 0)
+        
+        # Fetch filtered orders - same status
+        orders = Order.find_by_status(OrderStatus.Cancelled)
+        print('second', orders)
+        self.assertEqual(len(orders), 1)
+        order = orders[0]
+        self.assertEqual(order.id, 1)
+        self.assertEqual(order.status, OrderStatus.Cancelled)
+        
         
