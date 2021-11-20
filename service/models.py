@@ -184,3 +184,23 @@ class Order(db.Model, PersistentBase):
                 "Invalid Order: body of request contained bad or no data"
             )
         return self
+
+    @classmethod
+    def find_by_status(cls, status):
+        """Returns all Orders with the given status
+
+        Args:
+            status (string): the status of the Order you want to match
+        """
+        logger.info("Processing status query for %s ...", status)
+        return cls.query.filter(cls.status == status).all()
+    
+    @classmethod
+    def find_by_customer(cls, customer_id):
+        """Returns all Orders of the given customer ID
+
+        Args:
+            customer_id (int): the id of the Customer you want to match
+        """
+        logger.info("Processing customer query for %d ...", customer_id)
+        return cls.query.filter(cls.customer_id == customer_id).all()
