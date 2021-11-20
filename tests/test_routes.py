@@ -1,11 +1,12 @@
 """
-TestYourResourceModel API Service Test Suite
+TestOrderModel API Service Test Suite
 Test cases can be run with the following:
   nosetests -v --with-spec --spec-color
   coverage report -m
 """
 import os
 import logging
+from urllib.parse import quote_plus
 from unittest import TestCase
 from unittest.mock import MagicMock, patch
 #from service import status  # HTTP Status Codes
@@ -17,6 +18,8 @@ from tests.factories import OrderFactory, OrderItemFactory
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgres://postgres:postgres@localhost:5432/postgres"
 )
+
+BASE_URL = "/order"
 
 ######################################################################
 #  T E S T   C A S E S
@@ -325,3 +328,34 @@ class TestYourResourceServer(TestCase):
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_query_order_list_by_status(self):
+        """ Query Orders by Status """
+        orders = self._create_orders(10)
+        test_status = orders[0].status
+        status_orders = [order for order in orders if order.status == test_status]
+        resp = self.app.get(
+            BASE_URL, query_string="status={}".format(quote_plus(test_status.name))
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(status_orders))
+        # check the data just to be sure
+        for order in data:
+            self.assertEqual(order["status"], test_status.name)
+    
+    def test_query_order_list_by_customer(self):
+        """ Query Orders by Customer """
+        orders = self._create_orders(10)
+        test_customer_id = orders[0].customer_id
+        print('type is', type(test_customer_id))
+        customer_id_orders = [order for order in orders if order.customer_id == test_customer_id]
+        resp = self.app.get(
+            BASE_URL, query_string="customer-id={}".format(test_customer_id)
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+        data = resp.get_json()
+        self.assertEqual(len(data), len(customer_id_orders))
+        # check the data just to be sure
+        for order in data:
+            self.assertEqual(order["customer_id"], test_customer_id)

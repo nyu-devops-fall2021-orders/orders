@@ -190,17 +190,17 @@ class Order(db.Model, PersistentBase):
         """Returns all Orders with the given status
 
         Args:
-            status (string): the name of the Orders you want to match
+            status (string): the status of the Order you want to match
         """
         logger.info("Processing status query for %s ...", status)
-        return cls.query.filter(cls.status == status)
+        return cls.query.filter(cls.status == status).all()
     
     @classmethod
-    def find_by_customer(cls, customerId):
+    def find_by_customer(cls, customer_id):
         """Returns all Orders of the given customer ID
 
         Args:
-            customerId (int): the id of the Customer you want to match
+            customer_id (int): the id of the Customer you want to match
         """
-        logger.info("Processing customer query for %s ...", customerId)
-        return cls.query.filter(cls.customer_id == customerId)
+        logger.info("Processing customer query for %d ...", customer_id)
+        return cls.query.filter(cls.customer_id == customer_id).all()

@@ -17,8 +17,8 @@ DATABASE_URI = os.getenv(
 ######################################################################
 #  O R D E R   I T E M   M O D E L   T E S T   C A S E S
 ######################################################################
-class TestYourResourceModel(unittest.TestCase):
-    """ Test Cases for YourResourceModel Model """
+class TestOrderModel(unittest.TestCase):
+    """ Test Cases for Order Model """
 
     @classmethod
     def setUpClass(cls):
@@ -258,15 +258,32 @@ class TestYourResourceModel(unittest.TestCase):
 
         # Fetch filtered orders - different status
         orders = Order.find_by_status(OrderStatus.Completed)
-        print('first', orders)
         self.assertEqual(len(orders), 0)
         
         # Fetch filtered orders - same status
         orders = Order.find_by_status(OrderStatus.Cancelled)
-        print('second', orders)
         self.assertEqual(len(orders), 1)
         order = orders[0]
         self.assertEqual(order.id, 1)
         self.assertEqual(order.status, OrderStatus.Cancelled)
+    
+    def test_filter_orders_by_customer(self):
+        """ Get orders filtered by customer """
+        order = factories.OrderFactory(customer_id=5)
+        order.create()
+        # Assert that it was assigned an id and shows up in the database
+        self.assertEqual(order.id, 1)
+        orders = Order.all()
+        self.assertEqual(len(orders), 1)
+
+
+        # Fetch filtered orders - different customer
+        orders = Order.find_by_customer(4)
+        self.assertEqual(len(orders), 0)
         
-        
+        # Fetch filtered orders - same customer
+        orders = Order.find_by_customer(5)
+        self.assertEqual(len(orders), 1)
+        order = orders[0]
+        self.assertEqual(order.id, 1)
+        self.assertEqual(order.customer_id, 5)

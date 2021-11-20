@@ -1,7 +1,7 @@
 from flask import jsonify, request, url_for, make_response
 from . import status  # HTTP Status Codes
 
-from service.models import OrderItem, Order
+from service.models import OrderItem, Order, OrderStatus
 
 from . import app
 
@@ -162,7 +162,14 @@ def get_order(order_id):
 def list_orders():
     """ Returns all of the Orders """
     app.logger.info("Request for Order list")
-    orders = Order.all()
+    status = request.args.get("status")
+    customer_id_str = request.args.get("customer-id")
+    if status:
+        orders = Order.find_by_status(OrderStatus[status])
+    elif customer_id_str:
+        orders = Order.find_by_customer(int(customer_id_str))
+    else:
+        orders = Order.all()
     results = [order.serialize() for order in orders]
     return make_response(jsonify(results))
 

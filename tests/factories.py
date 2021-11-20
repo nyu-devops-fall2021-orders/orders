@@ -29,12 +29,11 @@ class OrderFactory(factory.Factory):
     
     id = factory.Sequence(lambda n: n)
     customer_id = factory.Sequence(lambda n: n*100)
-    status = factory.fuzzy.FuzzyChoice([s.value for s in OrderStatus])
+    status = factory.fuzzy.FuzzyChoice(OrderStatus)
 
-    def __init__(self, items=0, status=None):
-        if items > 0:
-            order_items = OrderItemFactory.create_batch(items)
-            self.order_items = order_items
+    def __init__(self, status=None, customer_id=0):
         if status:
             self.status = status
+        if customer_id > 0:
+            self.customer_id = customer_id
         return 
