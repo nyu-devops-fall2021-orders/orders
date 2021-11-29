@@ -8,13 +8,14 @@ from . import app
 @app.route('/')
 def index():
     """ Root URL response """
-    return (
-        jsonify(
-            name="Orders REST API Service",
-            version="1.0",
-        ),
-        status.HTTP_200_OK,
-    )
+    return app.send_static_file("index.html")
+    # return (
+    #     jsonify(
+    #         name="Orders REST API Service",
+    #         version="1.0",
+    #     ),
+    #     status.HTTP_200_OK,
+    # )
 
 def init_db():
     """ Initializes the SQLAlchemy app """
@@ -185,7 +186,8 @@ def update_order(order_id):
     app.logger.info("Request to update order with order_id: %s", order_id)
     order = Order.find_or_404(order_id)
     data = request.get_json()
-    del data["order_items"]
+    if "order_items" in data:
+        del data["order_items"]
     order.deserialize(data)
     
     order.id = order_id
