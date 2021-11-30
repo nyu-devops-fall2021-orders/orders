@@ -76,6 +76,13 @@ Vagrant.configure(2) do |config|
     apt-get install -y git tree wget vim python3-dev python3-pip python3-venv apt-transport-https
     apt-get upgrade python3
     
+    # Install Chrome Headless and Selenium
+    echo "\n*****************************************"
+    echo " Installing Chrome Headless and Selenium"
+    echo "*****************************************\n"
+    apt-get install -y chromium-chromedriver python3-selenium
+    chromedriver --version
+
     # Need PostgreSQL development library to compile on arm64
     apt-get install -y libpq-dev
 
