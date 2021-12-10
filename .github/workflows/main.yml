@@ -3,11 +3,9 @@ on:
   push:
     branches:
       - main
-      - Add-Codecov.io-badge
   pull_request:
     branches:
       - main
-      - Add-Codecov.io-badge
 
 jobs:
   build:

@@ -1,6 +1,5 @@
 ![Build Status](https://github.com/nyu-devops-fall2021-orders/orders/actions/workflows/main.yml/badge.svg)
 [![codecov](https://codecov.io/gh/nyu-devops-fall2021-orders/orders/branch/main/graph/badge.svg?token=19L88XN28R)](https://codecov.io/gh/nyu-devops-fall2021-orders/orders)
-[![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
 # orders
 This repo maintains the orders API for the ecommerce website being developed by NYU DevOps Fall 2021.
