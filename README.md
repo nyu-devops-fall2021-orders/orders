@@ -1,5 +1,3 @@
-
-[![Build Status](https://app.travis-ci.com/nyu-devops-fall2021-orders/orders.svg?branch=main)](https://app.travis-ci.com/nyu-devops-fall2021-orders/orders)
 [![codecov](https://codecov.io/gh/nyu-devops-fall2021-orders/orders/branch/main/graph/badge.svg?token=19L88XN28R)](https://codecov.io/gh/nyu-devops-fall2021-orders/orders)
 [![License](https://img.shields.io/badge/License-Apache%202.0-blue.svg)](https://opensource.org/licenses/Apache-2.0)
 
