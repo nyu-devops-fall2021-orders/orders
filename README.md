@@ -1,5 +1,5 @@
 
-![Build Status](https://github.com/nyu-devops-fall2021-orders/orders/actions/workflows/main.yml/badge.svg)
+[![Build Status](https://app.travis-ci.com/nyu-devops-fall2021-orders/orders.svg?branch=main)](https://app.travis-ci.com/nyu-devops-fall2021-orders/orders)
 [![codecov](https://codecov.io/gh/nyu-devops-fall2021-orders/orders/branch/main/graph/badge.svg?token=19L88XN28R)](https://codecov.io/gh/nyu-devops-fall2021-orders/orders)
 
 # orders
