@@ -254,7 +254,7 @@ class TestYourResourceServer(TestCase):
         item = ItemFactory()
         resp = self.APP.post(
             f"{BASE_URL}/{order.id}/items",
-            json=item.serialize(),
+            json=item.serialize(),  # pylint: disable=no-member
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
@@ -271,7 +271,7 @@ class TestYourResourceServer(TestCase):
         item = ItemFactory()
         resp = self.APP.post(
             f"{BASE_URL}/{order.id}/items",
-            json=item.serialize(),
+            json=item.serialize(),  # pylint: disable=no-member
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
@@ -299,7 +299,7 @@ class TestYourResourceServer(TestCase):
         item = ItemFactory()
         resp = self.APP.post(
             f"{BASE_URL}/{order.id}/items",
-            json=item.serialize(),
+            json=item.serialize(),  # pylint: disable=no-member
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
@@ -334,7 +334,7 @@ class TestYourResourceServer(TestCase):
         item = ItemFactory()
         resp = self.APP.post(
             f"{BASE_URL}/{order.id}/items",
-            json=item.serialize(),
+            json=item.serialize(),  # pylint: disable=no-member
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
