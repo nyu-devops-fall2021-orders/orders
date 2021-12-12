@@ -1,5 +1,5 @@
 """
-TestOrderModel API Service Test Suite
+Orders API Service Test Suite
 Test cases can be run with the following:
   nosetests -v --with-spec --spec-color
   coverage report -m
@@ -8,50 +8,48 @@ import os
 import logging
 from urllib.parse import quote_plus
 from unittest import TestCase
-from unittest.mock import MagicMock, patch
-#from service import status  # HTTP Status Codes
-from service.models import db, Order, OrderItem, OrderStatus
-from service.routes import app, init_db
-from service import status
-from tests.factories import OrderFactory, OrderItemFactory
+from factories import ItemFactory
+from service.models import db, Order, Item, OrderStatus
+from service.routes.common import init_db
+from service import APP, status
 
 DATABASE_URI = os.getenv(
     "DATABASE_URI", "postgres://postgres:postgres@localhost:5432/postgres"
 )
 
-BASE_URL = "/order"
+BASE_URL = "/api/orders"
 
 ######################################################################
 #  T E S T   C A S E S
 ######################################################################
+
+
 class TestYourResourceServer(TestCase):
     """ REST API Server Tests """
 
     @classmethod
     def setUpClass(cls):
         """ This runs once before the entire test suite """
-        app.config['TESTING'] = True
-        app.config['DEBUG'] = False
-        app.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
-        app.logger.setLevel(logging.CRITICAL)
+        APP.config['TESTING'] = True
+        APP.config['DEBUG'] = False
+        APP.config["SQLALCHEMY_DATABASE_URI"] = DATABASE_URI
+        APP.logger.setLevel(logging.CRITICAL)
         init_db()
 
     @classmethod
     def tearDownClass(cls):
         """ This runs once after the entire test suite """
-        pass
 
     def setUp(self):
         """ This runs before each test """
         db.drop_all()  # clean up the last tests
         db.create_all()  # create new tables
-        self.app = app.test_client()
+        self.APP = APP.test_client()    # pylint: disable=invalid-name
 
     def tearDown(self):
         """ This runs after each test """
         db.session.remove()
         db.drop_all()
-
 
     ######################################################################
     #  H E L P E R   M E T H O D S
@@ -60,17 +58,18 @@ class TestYourResourceServer(TestCase):
     def _create_orders(self, count):
         """ Helper method to create orders in bulk """
         orders = []
-        
+
         customer_id = 1
-        orderStatus = OrderStatus.Created
+        order_status = OrderStatus.CREATED
         tracking_id = 1
         for _ in range(count):
-            order = Order(customer_id=customer_id, tracking_id=tracking_id, status=orderStatus)
-            resp = self.app.post(
-                "/order", json=order.serialize(), content_type="application/json"
+            order = Order(customer_id=customer_id,
+                          tracking_id=tracking_id, status=order_status)
+            resp = self.APP.post(
+                BASE_URL, json=order.serialize(), content_type="application/json"
             )
             self.assertEqual(
-                resp.status_code, status.HTTP_201_CREATED, "Could not create test Account"
+                resp.status_code, status.HTTP_201_CREATED, "Could not create test Order"
             )
             new_order = resp.get_json()
             order.id = new_order["id"]
@@ -85,13 +84,13 @@ class TestYourResourceServer(TestCase):
 
     def test_index(self):
         """ Test index call """
-        resp = self.app.get("/")
+        resp = self.APP.get("/")
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
     def test_get_order_list(self):
         """ Get a list of orders """
         self._create_orders(5)
-        resp = self.app.get("/order")
+        resp = self.APP.get(BASE_URL)
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
         self.assertEqual(len(data), 5)
@@ -101,8 +100,8 @@ class TestYourResourceServer(TestCase):
         # get the id of an order
         order = self._create_orders(1)[0]
         order.create()
-        resp = self.app.get(
-            "/order/{}".format(order.id), 
+        resp = self.APP.get(
+            f"{BASE_URL}/{order.id}",
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -111,50 +110,60 @@ class TestYourResourceServer(TestCase):
 
     def test_get_order_not_found(self):
         """ Get an order that is not found """
-        resp = self.app.get("/order/0")
+        resp = self.APP.get("{BASE_URL}/0")
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
 
     def test_create_order(self):
-        """ Create a new Account """
-        order_item = OrderItem(product_id=1, quantity=1, price=5, order_id = 1)
-        order = Order(customer_id=1, tracking_id=1, status=OrderStatus.Created, order_items=[order_item])
-        resp = self.app.post(
-            "/order", 
-            json=order.serialize(), 
+        """ Create a new Order """
+        item = Item(product_id=1, quantity=1, price=5, order_id=1)
+        order = Order(customer_id=1, tracking_id=1,
+                      status=OrderStatus.CREATED, items=[item])
+        resp = self.APP.post(
+            BASE_URL,
+            json=order.serialize(),
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
-        
+
         # Check the data is correct
         new_order = resp.get_json()
         self.assertNotEqual(new_order["id"], None, "Order ID is null")
-        self.assertEqual(new_order["customer_id"], order.customer_id, "Customer ID does not match")
-        self.assertEqual(new_order["tracking_id"], order.tracking_id, "Tracking ID does not match")
-        self.assertEqual(new_order["status"], order.status.name, "Status does not match")
-        self.assertEqual(len(new_order["order_items"]), 1, "Order items has length not equal to 1")
+        self.assertEqual(new_order["customer_id"],
+                         order.customer_id, "Customer ID does not match")
+        self.assertEqual(new_order["tracking_id"],
+                         order.tracking_id, "Tracking ID does not match")
+        self.assertEqual(new_order["status"],
+                         order.status.name, "Status does not match")
+        self.assertEqual(
+            len(new_order["items"]), 1, "Order items has length not equal to 1")
 
-        new_order_item = new_order["order_items"][0]
+        new_item = new_order["items"][0]
         # Check that the location header was correct by getting it
-        resp = self.app.get(
-            "/order/{}/orderitem/{}".format(new_order["id"], new_order_item["id"]),
-            json=order.serialize(), 
+        resp = self.APP.get(
+            f"{BASE_URL}/{new_order['id']}/items/{new_item['id']}",
+            json=order.serialize(),
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
-        new_order_item = resp.get_json()
-        self.assertEqual(new_order_item["product_id"], order_item.product_id, "Product ID does not match")
-        self.assertEqual(new_order_item["quantity"], order_item.quantity, "Quantity does not match")
-        self.assertEqual(new_order_item["price"], order_item.price, "Price does not match")
-        self.assertEqual(new_order_item["order_id"], order_item.order_id, "Order ID does not match")
+        new_item = resp.get_json()
+        self.assertEqual(
+            new_item["product_id"], item.product_id, "Product ID does not match")
+        self.assertEqual(
+            new_item["quantity"], item.quantity, "Quantity does not match")
+        self.assertEqual(new_item["price"],
+                         item.price, "Price does not match")
+        self.assertEqual(
+            new_item["order_id"], item.order_id, "Order ID does not match")
 
     def test_update_order(self):
         """ Update an existing order """
         # create an Account to update
-        order_item = OrderItem(product_id=1, quantity=1, price=5, order_id = 1)
-        order = Order(customer_id=1, tracking_id=1, status=OrderStatus.Created, order_items=[order_item])
-        resp = self.app.post(
-            "/order", 
-            json=order.serialize(), 
+        item = Item(product_id=1, quantity=1, price=5, order_id=1)
+        order = Order(customer_id=1, tracking_id=1,
+                      status=OrderStatus.CREATED, items=[item])
+        resp = self.APP.post(
+            BASE_URL,
+            json=order.serialize(),
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
@@ -162,8 +171,8 @@ class TestYourResourceServer(TestCase):
         # update the order
         new_order = resp.get_json()
         new_order["customer_id"] = 456
-        resp = self.app.put(
-            "/order/{}".format(new_order["id"]),
+        resp = self.APP.put(
+            f"{BASE_URL}/{new_order['id']}",
             json=new_order,
             content_type="application/json",
         )
@@ -175,64 +184,63 @@ class TestYourResourceServer(TestCase):
         """ Delete an Account """
         # get the id of an order
         order = self._create_orders(1)[0]
-        resp = self.app.delete(
-            "/order/{}".format(order.id), 
+        resp = self.APP.delete(
+            f"{BASE_URL}/{order.id}",
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
 
     def test_action_status(self):
-        """ change the status of an order to cancelled """
+        """ Cancel an Order """
         # create an Action to change order status to canceled
         order = self._create_orders(1)[0]
         order.create()
-        self.assertEqual(order.status , OrderStatus.Created)
+        self.assertEqual(order.status, OrderStatus.CREATED)
 
         # Action to cancel the order
-        resp = self.app.put(
-            "/order/{}/cancel".format(order.id)
-        )            
+        resp = self.APP.put(
+            f"{BASE_URL}/{order.id}/cancel"
+        )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         updated_order = resp.get_json()
-        self.assertEqual(updated_order["status"], OrderStatus.Cancelled.name)
+        self.assertEqual(updated_order["status"], OrderStatus.CANCELLED.name)
 
         # Get order
-        resp = self.app.get(
-            "/order/{}".format(order.id), 
+        resp = self.APP.get(
+            f"{BASE_URL}/{order.id}",
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
-        self.assertEqual(data["status"], OrderStatus.Cancelled.name)
+        self.assertEqual(data["status"], OrderStatus.CANCELLED.name)
 
+    # Items
 
-    # Order Items
-
-    def test_get_order_item_list(self):
+    def test_get_item_list(self):
         """ Get a list of order items """
-        # add two order_itemes to account
+        # add two itemes to account
         order = self._create_orders(1)[0]
-        order_item_list = OrderItemFactory.create_batch(2)
+        item_list = ItemFactory.create_batch(2)
 
-        # Create order_item 1
-        resp = self.app.post(
-            "/order/{}/orderitem".format(order.id), 
-            json=order_item_list[0].serialize(), 
+        # Create item 1
+        resp = self.APP.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item_list[0].serialize(),
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
-        # Create order_item 2
-        resp = self.app.post(
-            "/order/{}/orderitem".format(order.id), 
-            json=order_item_list[1].serialize(), 
+        # Create item 2
+        resp = self.APP.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item_list[1].serialize(),
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
         # get the list back and make sure there are 2
-        resp = self.app.get(
-            "/order/{}/orderitem".format(order.id), 
+        resp = self.APP.get(
+            f"{BASE_URL}/{order.id}/items",
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
@@ -240,116 +248,109 @@ class TestYourResourceServer(TestCase):
         data = resp.get_json()
         self.assertEqual(len(data), 2)
 
-
-    def test_add_order_item(self):
+    def test_add_item(self):
         """ Add an item to an order """
         order = self._create_orders(1)[0]
-        order_item = OrderItemFactory()
-        resp = self.app.post(
-            "/order/{}/orderitem".format(order.id), 
-            json=order_item.serialize(), 
+        item = ItemFactory()
+        resp = self.APP.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item.serialize(),  # pylint: disable=no-member
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         data = resp.get_json()
-        logging.debug(data)
         self.assertEqual(data["order_id"], order.id)
-        self.assertEqual(data["product_id"], order_item.product_id)
-        self.assertEqual(data["quantity"], order_item.quantity)
-        self.assertEqual(data["price"], order_item.price)
+        self.assertEqual(data["product_id"], item.product_id)
+        self.assertEqual(data["quantity"], item.quantity)
+        self.assertEqual(data["price"], item.price)
 
-    def test_get_order_item(self):
+    def test_get_item(self):
         """ Get an order item from an order """
         # create a known order item
         order = self._create_orders(1)[0]
-        order_item = OrderItemFactory()
-        resp = self.app.post(
-            "/order/{}/orderitem".format(order.id), 
-            json=order_item.serialize(), 
+        item = ItemFactory()
+        resp = self.APP.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item.serialize(),  # pylint: disable=no-member
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
         data = resp.get_json()
-        logging.debug(data)
-        order_item_id = data["id"]
+        item_id = data["id"]
 
         # retrieve it back
-        resp = self.app.get(
-            "/order/{}/orderitem/{}".format(order.id, order_item_id), 
+        resp = self.APP.get(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         data = resp.get_json()
-        logging.debug(data)
         self.assertEqual(data["order_id"], order.id)
-        self.assertEqual(data["product_id"], order_item.product_id)
-        self.assertEqual(data["quantity"], order_item.quantity)
-        self.assertEqual(data["price"], order_item.price)
+        self.assertEqual(data["product_id"], item.product_id)
+        self.assertEqual(data["quantity"], item.quantity)
+        self.assertEqual(data["price"], item.price)
 
-    def test_update_order_item(self):
-        """ Update an order_item on an account """
-        # create a known order_item
+    def test_update_item(self):
+        """ Update an item on an account """
+        # create a known item
         order = self._create_orders(1)[0]
-        order_item = OrderItemFactory()
-        resp = self.app.post(
-            "/order/{}/orderitem".format(order.id), 
-            json=order_item.serialize(), 
+        item = ItemFactory()
+        resp = self.APP.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item.serialize(),  # pylint: disable=no-member
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
 
         data = resp.get_json()
-        logging.debug(data)
-        order_item_id = data["id"]
+        item_id = data["id"]
         data["product_id"] = 123
 
         # send the update back
-        resp = self.app.put(
-            "/order/{}/orderitem/{}".format(order.id, order_item_id), 
-            json=data, 
+        resp = self.APP.put(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
+            json=data,
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         # retrieve it back
-        resp = self.app.get(
-            "/order/{}/orderitem/{}".format(order.id, order_item_id), 
+        resp = self.APP.get(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
 
         data = resp.get_json()
-        logging.debug(data)
-        self.assertEqual(data["id"], order_item_id)
+        self.assertEqual(data["id"], item_id)
         self.assertEqual(data["order_id"], order.id)
         self.assertEqual(data["product_id"], 123)
 
-    def test_delete_order_item(self):
+    def test_delete_item(self):
         """ Delete an order item """
         order = self._create_orders(1)[0]
-        order_item = OrderItemFactory()
-        resp = self.app.post(
-            "/order/{}/orderitem".format(order.id), 
-            json=order_item.serialize(), 
+        item = ItemFactory()
+        resp = self.APP.post(
+            f"{BASE_URL}/{order.id}/items",
+            json=item.serialize(),  # pylint: disable=no-member
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
         data = resp.get_json()
-        logging.debug(data)
-        order_item_id = data["id"]
+        item_id = data["id"]
 
         # send delete request
-        resp = self.app.delete(
-            "/order/{}/orderitem/{}".format(order.id, order_item_id),
+        resp = self.APP.delete(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_204_NO_CONTENT)
 
-        # retrieve it back and make sure order_item is not there
-        resp = self.app.get(
-            "/order/{}/orderitem/{}".format(order.id, order_item_id), 
+        # retrieve it back and make sure item is not there
+        resp = self.APP.get(
+            f"{BASE_URL}/{order.id}/items/{item_id}",
             content_type="application/json"
         )
         self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
@@ -358,9 +359,10 @@ class TestYourResourceServer(TestCase):
         """ Query Orders by Status """
         orders = self._create_orders(10)
         test_status = orders[0].status
-        status_orders = [order for order in orders if order.status == test_status]
-        resp = self.app.get(
-            BASE_URL, query_string="status={}".format(quote_plus(test_status.name))
+        status_orders = [
+            order for order in orders if order.status == test_status]
+        resp = self.APP.get(
+            BASE_URL, query_string=f"status={quote_plus(test_status.name)}"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()
@@ -368,15 +370,16 @@ class TestYourResourceServer(TestCase):
         # check the data just to be sure
         for order in data:
             self.assertEqual(order["status"], test_status.name)
-    
+
     def test_query_order_list_by_customer(self):
         """ Query Orders by Customer """
         orders = self._create_orders(10)
         test_customer_id = orders[0].customer_id
         print('type is', type(test_customer_id))
-        customer_id_orders = [order for order in orders if order.customer_id == test_customer_id]
-        resp = self.app.get(
-            BASE_URL, query_string="customer-id={}".format(test_customer_id)
+        customer_id_orders = [
+            order for order in orders if order.customer_id == test_customer_id]
+        resp = self.APP.get(
+            BASE_URL, query_string=f"customer-id={test_customer_id}"
         )
         self.assertEqual(resp.status_code, status.HTTP_200_OK)
         data = resp.get_json()

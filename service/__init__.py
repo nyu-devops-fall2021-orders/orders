@@ -1,13 +1,20 @@
-import sys
+"""
+This is the main package where the data models and business logic lie.
+"""
+
+import logging
 from flask import Flask
+from flask.logging import create_logger
 
-app = Flask(__name__)
+APP = Flask(__name__)
+APP.logger = create_logger(APP)
+APP.config.from_object("config")
 
-from service import routes
-app.config.from_object("config")
-
-try:
-    routes.init_db()  # make our sqlalchemy tables
-except Exception as error:
-    # gunicorn requires exit code 4 to stop spawning workers when they die
-    sys.exit(4)
+# Set up logging for production
+APP.logger.propagate = False
+print(f"Setting up logging for {__name__}...")
+if __name__ != '__main__':
+    gunicorn_logger = logging.getLogger('gunicorn.error')
+    if gunicorn_logger:
+        APP.logger.handlers = gunicorn_logger.handlers
+        APP.logger.setLevel(gunicorn_logger.level)
