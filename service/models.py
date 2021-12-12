@@ -1,55 +1,68 @@
+"""
+This module contains the database models for order and order item resources.
+"""
+
 from enum import Enum
-import logging
-from datetime import datetime
 from flask_sqlalchemy import SQLAlchemy
+from service import APP
 
 # Create the SQLAlchemy object to be initialized later in init_db()
 db = SQLAlchemy()
-logger = logging.getLogger("flask.app")
+
+
+class DatabaseConnectionError(Exception):
+    """Custom Exception when database connection fails"""
+
 
 class DataValidationError(Exception):
     """ Used for an data validation errors when deserializing """
 
-    pass
 
-DATETIME_FORMAT='%Y-%m-%d %H:%M:%S.%f'
+DATETIME_FORMAT = '%Y-%m-%d %H:%M:%S.%f'
+
 
 class OrderStatus(Enum):
-    Created = 0
-    Paid = 1
-    Completed = 2
-    Cancelled = 3
+    """
+        This enum defines the status values an order can exist in.
+    """
+    CREATED = 0
+    PAID = 1
+    COMPLETED = 2
+    CANCELLED = 3
+
 
 class PersistentBase():
     """ Base class added persistent methods """
 
+    def __init__(self):
+        self.id = None  # pylint: disable=invalid-name
+
     def create(self):
         """
-        Creates an Order or Order Item to the database
+        Creates an Order or Item to the database
         """
-        logger.info("Creating %s", self.id)
         self.id = None  # id must be none to generate next primary key
         db.session.add(self)
         db.session.commit()
 
     def update(self):
         """
-        Updates an Order or Order Item to the database
+        Updates an Order or Item to the database
         """
-        logger.info("Updating %s", self.id)
+        APP.logger.debug("Updating %s", self.id)
         db.session.commit()
 
     def delete(self):
-        """ Removes an Order or Order Item from the database """
-        logger.info("Deleting %s", self.id)
+        """ Removes an Order or Item from the database """
+        APP.logger.debug("Deleting %s", self.id)
         db.session.delete(self)
         db.session.commit()
 
     @classmethod
     def init_db(cls, app):
         """ Initializes the database session """
-        logger.info("Initializing database")
-        cls.app = app
+        APP.logger.debug("Initializing database")
+        cls.APP = app
         # This is where we initialize SQLAlchemy from the Flask app
         db.init_app(app)
         app.app_context().push()
@@ -58,34 +71,47 @@ class PersistentBase():
     @classmethod
     def all(cls):
         """ Returns all of the records in the database """
-        logger.info("Processing all records")
-        return cls.query.all()
+        APP.logger.debug("Processing all records")
+        return cls.query.all()  # pylint: disable=no-member
 
     @classmethod
     def find(cls, by_id):
         """ Finds a record by it's ID """
-        logger.info("Processing lookup for id %s ...", by_id)
-        return cls.query.get(by_id)
+        APP.logger.debug("Processing lookup for id %s ...", by_id)
+        return cls.query.get(by_id)  # pylint: disable=no-member
 
     @classmethod
     def find_or_404(cls, by_id):
         """ Find a record by it's id """
-        logger.info("Processing lookup or 404 for id %s ...", by_id)
-        return cls.query.get_or_404(by_id)
+        APP.logger.debug("Processing lookup or 404 for id %s ...", by_id)
+        return cls.query.get_or_404(by_id)  # pylint: disable=no-member
 
-class OrderItem(db.Model, PersistentBase):
-    """ Class that represents an Order Item """
-    app = None
+
+class Item(db.Model, PersistentBase):
+    """ Class that represents an Item """
+    APP = None
 
     id = db.Column(db.Integer, primary_key=True)
     product_id = db.Column(db.Integer, nullable=False)
     quantity = db.Column(db.Integer, nullable=False, default=1)
     price = db.Column(db.Float, nullable=False)
     order_id = db.Column(db.Integer, db.ForeignKey('order.id'))
-    
+
+    def __init__(self, **kwargs):
+        super().__init__()
+        if "id" in kwargs:
+            self.id = kwargs["id"]
+        if "product_id" in kwargs:
+            self.product_id = kwargs["product_id"]
+        if "quantity" in kwargs:
+            self.quantity = kwargs["quantity"]
+        if "price" in kwargs:
+            self.price = kwargs["price"]
+        if "order_id" in kwargs:
+            self.order_id = kwargs["order_id"]
 
     def __repr__(self):
-        return f"Order Item('{self.id}', '{self.product_id}', '{self.quantity}', '{self.price}', '{self.order_id}')"
+        return f"Item('{self.id}', '{self.product_id}', '{self.quantity}', '{self.price}', '{self.order_id}')"    # pylint: disable=line-too-long
 
     def serialize(self):
         """ Serializes a Address into a dictionary """
@@ -99,14 +125,14 @@ class OrderItem(db.Model, PersistentBase):
 
     def deserialize(self, data: dict):
         """
-        Deserializes a Order Item from a dictionary
+        Deserializes a Item from a dictionary
         Args:
-            data (dict): A dictionary containing the Order Item data
+            data (dict): A dictionary containing the Item data
         """
         try:
             if "id" in data:
                 self.id = data["id"]
-            
+
             self.product_id = data["product_id"]
             self.quantity = data["quantity"]
             self.price = data["price"]
@@ -115,74 +141,90 @@ class OrderItem(db.Model, PersistentBase):
                 self.order_id = data["order_id"]
 
         except AttributeError as error:
-            raise DataValidationError("Invalid attribute: " + error.args[0])
+            raise DataValidationError(
+                "Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
-            raise DataValidationError("Invalid Order Item: missing " + error.args[0])
+            raise DataValidationError(
+                "Invalid Item: missing " + error.args[0]) from error
         except TypeError as error:
             raise DataValidationError(
-                "Invalid Order Item: body of request contained bad or no data"
-            )
+                "Invalid Item: body of request contained bad or no data"
+            ) from error
         return self
 
 
 class Order(db.Model, PersistentBase):
     """
-    Class that represents an Order
+    This class contains the database schema for Order objects
     """
-    # Table Schema
-    app = None
+    APP = None
     id = db.Column(db.Integer, primary_key=True)
     customer_id = db.Column(db.Integer, nullable=False)
     tracking_id = db.Column(db.Integer)
     status = db.Column(
-        db.Enum(OrderStatus), nullable=False, server_default=(OrderStatus.Created.name)
+        db.Enum(OrderStatus), nullable=False, server_default=(OrderStatus.CREATED.name)
     )
-    order_items = db.relationship('OrderItem', backref='order', cascade="all, delete", lazy=True)
+    items = db.relationship(
+        'Item', backref='order', cascade="all, delete", lazy=True)
+
+    def __init__(self, **kwargs):
+        super().__init__()
+        if "id" in kwargs:
+            self.id = kwargs["id"]
+        if "customer_id" in kwargs:
+            self.customer_id = kwargs["customer_id"]
+        if "tracking_id" in kwargs:
+            self.tracking_id = kwargs["tracking_id"]
+        if "status" in kwargs:
+            self.status = kwargs["status"]
+        if "items" in kwargs:
+            self.items = kwargs["items"]
 
     def __repr__(self):
         return f"Order('{self.id}', '{self.customer_id}', '{self.tracking_id}', '{self.status}')"
 
     def serialize(self):
         """ Serializes a Address into a dictionary """
-        order_items = []
-        for order_item in self.order_items:
-            order_items.append(OrderItem.serialize(order_item))
+        items = []
+        for item in self.items:
+            items.append(Item.serialize(item))
 
         return {
             "id": self.id,
             "customer_id": self.customer_id,
             "tracking_id": self.tracking_id,
             "status": self.status.name,
-            "order_items": order_items,
+            "items": items,
         }
-    
+
     def deserialize(self, data: dict):
         """
-        Deserializes a Order from a dictionary
+        Deserializes an Order from a dictionary
         Args:
             data (dict): A dictionary containing the Order data
         """
         try:
             if "id" in data:
                 self.id = data["id"]
-            
+
             self.customer_id = data["customer_id"]
             self.tracking_id = data["tracking_id"]
 
-            if "order_items" in data:
-                self.order_items = []
-                for order_item in data["order_items"]:
-                    orderItem = OrderItem()
-                    self.order_items.append(orderItem.deserialize(order_item))
+            if "items" in data:
+                self.items = []
+                for item in data["items"]:
+                    self.items.append(
+                        Item().deserialize(item))
             self.status = getattr(OrderStatus, data["status"])
         except AttributeError as error:
-            raise DataValidationError("Invalid attribute: " + error.args[0])
+            raise DataValidationError(
+                "Invalid attribute: " + error.args[0]) from error
         except KeyError as error:
-            raise DataValidationError("Invalid Order: missing " + error.args[0])
+            raise DataValidationError(
+                "Invalid Order: missing " + error.args[0]) from error
         except TypeError as error:
             raise DataValidationError(
-                "Invalid Order: body of request contained bad or no data"
-            )
+                "Invalid Order: body of request contained bad or no data") from error
         return self
 
     @classmethod
@@ -192,9 +234,9 @@ class Order(db.Model, PersistentBase):
         Args:
             status (string): the status of the Order you want to match
         """
-        logger.info("Processing status query for %s ...", status)
+        APP.logger.debug("Processing status query for %s ...", status)
         return cls.query.filter(cls.status == status).all()
-    
+
     @classmethod
     def find_by_customer(cls, customer_id):
         """Returns all Orders of the given customer ID
@@ -202,5 +244,5 @@ class Order(db.Model, PersistentBase):
         Args:
             customer_id (int): the id of the Customer you want to match
         """
-        logger.info("Processing customer query for %d ...", customer_id)
+        APP.logger.debug("Processing customer query for %d ...", customer_id)
         return cls.query.filter(cls.customer_id == customer_id).all()

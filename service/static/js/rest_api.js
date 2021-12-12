@@ -9,23 +9,23 @@ $(function () {
         $("#order_id").val(res.id);
         $("#customer_id").val(res.customer_id);
         $("#tracking_id").val(res.tracking_id);
-        switch(res.status) {
-            case "Created":
-                $("#status").val("Created");
+        switch (res.status) {
+            case "CREATED":
+                $("#status").val("CREATED");
                 break;
-            case "Paid":
-                $("#status").val("Paid");
+            case "PAID":
+                $("#status").val("PAID");
                 break;
-            case "Completed":
-                $("#status").val("Completed");
+            case "COMPLETED":
+                $("#status").val("COMPLETED");
                 break;
-            case "Cancelled":
-                $("#status").val("Cancelled");
-                break; 
+            case "CANCELLED":
+                $("#status").val("CANCELLED");
+                break;
         }
         /*
-        if (res.available == "Created") {
-            $("#status").val("Created");
+        if (res.available == "CREATED") {
+            $("#status").val("CREATED");
         } else {
             $("#status").val("false");
         }
@@ -54,7 +54,7 @@ $(function () {
         var order_id = $("#order_id").val();
         var customer_id = $("#customer_id").val();
         var tracking_id = $("#tracking_id").val();
-        var status = $("#status").val();//== "Created";
+        var status = $("#status").val();//== "CREATED";
 
         var data = {
             "order_id": order_id,
@@ -65,17 +65,17 @@ $(function () {
 
         var ajax = $.ajax({
             type: "POST",
-            url: "/order",
+            url: "/api/orders",
             contentType: "application/json",
             data: JSON.stringify(data),
         });
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             update_form_data(res)
             flash_message("Success")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             flash_message(res.responseJSON.message)
         });
     });
@@ -90,7 +90,7 @@ $(function () {
         var order_id = $("#order_id").val();
         var customer_id = $("#customer_id").val();
         var tracking_id = $("#tracking_id").val();
-        var status = $("#status").val() ;
+        var status = $("#status").val();
 
         var data = {
             "order_id": order_id,
@@ -100,18 +100,18 @@ $(function () {
         };
 
         var ajax = $.ajax({
-                type: "PUT",
-                url: "/order/" + order_id,
-                contentType: "application/json",
-                data: JSON.stringify(data)
-            })
+            type: "PUT",
+            url: "/api/orders/" + order_id,
+            contentType: "application/json",
+            data: JSON.stringify(data)
+        })
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             update_form_data(res)
             flash_message("Success")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             flash_message(res.responseJSON.message)
         });
 
@@ -127,18 +127,18 @@ $(function () {
 
         var ajax = $.ajax({
             type: "GET",
-            url: "/order/" + order_id,
+            url: "/api/orders/" + order_id,
             contentType: "application/json",
             data: ''
         })
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             //alert(res.toSource())
             update_form_data(res)
             flash_message("Success")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             clear_form_data()
             flash_message(res.responseJSON.message)
         });
@@ -155,17 +155,17 @@ $(function () {
 
         var ajax = $.ajax({
             type: "DELETE",
-            url: "/order/" + order_id,
+            url: "/api/orders/" + order_id,
             contentType: "application/json",
             data: '',
         })
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             clear_form_data()
             flash_message("Order has been Deleted!")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             flash_message("Server error!")
         });
     });
@@ -180,17 +180,17 @@ $(function () {
 
         var ajax = $.ajax({
             type: "PUT",
-            url: "/order/" + order_id + "/cancel",
+            url: "/api/orders/" + order_id + "/cancel",
             contentType: "application/json",
             data: '',
         })
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             clear_form_data()
-            flash_message("Order has been Cancelled!")
+            flash_message("Order has been CANCELLED!")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             flash_message("Server error!")
         });
     });
@@ -213,12 +213,11 @@ $(function () {
 
         var ajax = $.ajax({
             type: "GET",
-            url: "/order",
-            contentType: "application/json",
+            url: "/api/orders",
             data: ''
         })
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             //alert(res.toSource())
             $("#search_results").empty();
             $("#search_results").append('<table class="table-striped" cellpadding="10">');
@@ -229,9 +228,9 @@ $(function () {
             header += '<th style="width:10%">status</th></tr>'
             $("#search_results").append(header);
             var firstOrder = "";
-            for(var i = 0; i < res.length; i++) {
+            for (var i = 0; i < res.length; i++) {
                 var order = res[i];
-                var row = "<tr><td>"+order.id+"</td><td>"+order.customer_id+"</td><td>"+order.tracking_id+"</td><td>"+order.status+"</td></tr>";
+                var row = "<tr><td>" + order.id + "</td><td>" + order.customer_id + "</td><td>" + order.tracking_id + "</td><td>" + order.status + "</td></tr>";
                 $("#search_results").append(row);
                 if (i == 0) {
                     firstOrder = order;
@@ -248,7 +247,7 @@ $(function () {
             flash_message("Success")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             flash_message(res.responseJSON.message)
         });
 
@@ -263,22 +262,22 @@ $(function () {
         var ele = document.getElementsByName('query_option');
         var queryString = ""
 
-        if(ele[0].checked){
-            queryString = 'customer-id=' +  $("#query").val();
+        if (ele[0].checked) {
+            queryString = 'customer-id=' + $("#query").val();
         }
-        else{
-            queryString = 'status=' +  $("#query").val();
+        else {
+            queryString = 'status=' + $("#query").val();
         }
 
 
         var ajax = $.ajax({
             type: "GET",
-            url: "/order?" + queryString,
+            url: "/api/orders?" + queryString,
             contentType: "application/json",
             data: ''
         })
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             //alert(res.toSource())
             $("#search_results").empty();
             $("#search_results").append('<table class="table-striped" cellpadding="10">');
@@ -289,9 +288,9 @@ $(function () {
             header += '<th style="width:10%">status</th></tr>'
             $("#search_results").append(header);
             var firstOrder = "";
-            for(var i = 0; i < res.length; i++) {
+            for (var i = 0; i < res.length; i++) {
                 var order = res[i];
-                var row = "<tr><td>"+order.id+"</td><td>"+order.customer_id+"</td><td>"+order.tracking_id+"</td><td>"+order.status+"</td></tr>";
+                var row = "<tr><td>" + order.id + "</td><td>" + order.customer_id + "</td><td>" + order.tracking_id + "</td><td>" + order.status + "</td></tr>";
                 $("#search_results").append(row);
                 if (i == 0) {
                     firstOrder = order;
@@ -308,17 +307,17 @@ $(function () {
             flash_message("Success")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             flash_message(res.responseJSON.message)
         });
 
     });
 
-    
-    
-    
-    
-    
+
+
+
+
+
     // ****************************************************
     // O R D E R   I T E M S
     // ****************************************************
@@ -334,7 +333,7 @@ $(function () {
 
     // Updates the form with data from the response
     function update_item_form_data(res) {
-        $("#order_item_id").val(res.id);
+        $("#item_id").val(res.id);
         $("#product_id").val(res.product_id);
         $("#quantity").val(res.quantity);
         $("#price").val(res.price);
@@ -356,19 +355,19 @@ $(function () {
     }
 
     // ****************************************
-    // Create an Order Item
+    // Create an Item
     // ****************************************
 
     $("#create-item-btn").click(function () {
 
-        var order_item_id = $("#order_item_id").val();
+        var item_id = $("#item_id").val();
         var product_id = $("#product_id").val();
         var quantity = $("#quantity").val();
         var price = $("#price").val();
         var orderID = $("#orderID").val();
 
         var data = {
-            "id": order_item_id,
+            "id": item_id,
             "product_id": product_id,
             "quantity": quantity,
             "price": price,
@@ -377,36 +376,36 @@ $(function () {
 
         var ajax = $.ajax({
             type: "POST",
-            url: "/order/" + orderID + "/orderitem",
+            url: "/api/orders/" + orderID + "/items",
             contentType: "application/json",
             data: JSON.stringify(data),
         });
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             update_item_form_data(res)
             flash_item_message("Success")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             flash_item_message(res.responseJSON.message)
         });
     });
 
 
     // ****************************************
-    // Update an Order Item
+    // Update an Item
     // ****************************************
 
     $("#update-item-btn").click(function () {
 
-        var order_item_id = $("#order_item_id").val();
+        var item_id = $("#item_id").val();
         var product_id = $("#product_id").val();
         var quantity = $("#quantity").val();
         var price = $("#price").val();
         var orderID = $("#orderID").val();
 
         var data = {
-            "id": order_item_id,
+            "id": item_id,
             "product_id": product_id,
             "quantity": quantity,
             "price": price,
@@ -414,46 +413,46 @@ $(function () {
         };
 
         var ajax = $.ajax({
-                type: "PUT",
-                url: "/order/" + orderID + "/orderitem/" + order_item_id,
-                contentType: "application/json",
-                data: JSON.stringify(data)
-            })
+            type: "PUT",
+            url: "/api/orders/" + orderID + "/items/" + item_id,
+            contentType: "application/json",
+            data: JSON.stringify(data)
+        })
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             update_item_form_data(res)
             flash_item_message("Success")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             flash_item_message(res.responseJSON.message)
         });
 
     });
 
     // ****************************************
-    // Retrieve an Order Item
+    // Retrieve an Item
     // ****************************************
 
     $("#retrieve-item-btn").click(function () {
 
-        var order_item_id = $("#order_item_id").val();
+        var item_id = $("#item_id").val();
         var order_id = $("#orderID").val();
 
         var ajax = $.ajax({
             type: "GET",
-            url: "/order/" + order_id + "/orderitem/" + order_item_id,
+            url: "/api/orders/" + order_id + "/items/" + item_id,
             contentType: "application/json",
             data: ''
         })
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             //alert(res.toSource())
             update_item_form_data(res)
             flash_item_message("Success")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             clear_item_form_data()
             flash_item_message(res.responseJSON.message)
         });
@@ -467,21 +466,21 @@ $(function () {
     $("#delete-item-btn").click(function () {
 
         var order_id = $("#orderID").val();
-        var order_item_id = $("#order_item_id").val();
+        var item_id = $("#item_id").val();
 
         var ajax = $.ajax({
             type: "DELETE",
-            url: "/order/" + order_id + "/orderitem/" + order_item_id,
+            url: "/api/orders/" + order_id + "/items/" + item_id,
             contentType: "application/json",
             data: '',
         })
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             clear_item_form_data()
-            flash_item_message("Order Item has been Deleted!")
+            flash_item_message("Item has been Deleted!")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             flash_item_message("Server error!")
         });
     });
@@ -493,24 +492,24 @@ $(function () {
     // ****************************************
 
     $("#clear-item-btn").click(function () {
-        $("#order_item_id").val("");
+        $("#item_id").val("");
         clear_item_form_data()
     });
 
     // ****************************************
-    // List all Orders
+    // List all Items
     // ****************************************
 
     $("#listall-item-btn").click(function () {
 
         var order_id = $("#orderID").val();
-        if(order_id != ""){
-            var u = "/order/" + order_id + "/orderitem";    
+        if (order_id != "") {
+            var u = "/api/orders/" + order_id + "/items";
         }
         else {
-            var u = "listorderitems";
+            var u = "/api/items";
         }
-        
+
 
         var ajax = $.ajax({
             type: "GET",
@@ -519,7 +518,7 @@ $(function () {
             data: ''
         })
 
-        ajax.done(function(res){
+        ajax.done(function (res) {
             //alert(res.toSource())
             $("#search_item_results").empty();
             $("#search_item_results").append('<table class="table-striped" cellpadding="10">');
@@ -532,9 +531,9 @@ $(function () {
 
             $("#search_item_results").append(header);
             var firstOrder = "";
-            for(var i = 0; i < res.length; i++) {
+            for (var i = 0; i < res.length; i++) {
                 var order = res[i];
-                var row = "<tr><td>"+order.id+"</td><td>"+order.product_id+"</td><td>"+order.quantity+"</td><td>"+order.price+"</td><td>"+order.order_id+"</td></tr>";
+                var row = "<tr><td>" + order.id + "</td><td>" + order.product_id + "</td><td>" + order.quantity + "</td><td>" + order.price + "</td><td>" + order.order_id + "</td></tr>";
                 $("#search_item_results").append(row);
                 if (i == 0) {
                     firstOrder = order;
@@ -551,7 +550,7 @@ $(function () {
             flash_item_message("Success")
         });
 
-        ajax.fail(function(res){
+        ajax.fail(function (res) {
             flash_item_message(res.responseJSON.message)
         });
 

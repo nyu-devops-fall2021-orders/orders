@@ -3,6 +3,7 @@ Global Configuration for Application
 """
 import os
 import json
+import logging
 
 # Get configuration from environment
 # DATABASE_URI = os.getenv("DATABASE_URI", "sqlite:///../development.db")
@@ -21,3 +22,6 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # Secret for session management
 SECRET_KEY = os.getenv("SECRET_KEY", "s3cr3t-key-shhhh")
+
+# Logging level
+LOGGING_LEVEL = logging.INFO

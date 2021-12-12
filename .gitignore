@@ -139,3 +139,6 @@ thumbs.db
 
 # Vagrant folder
 .vagrant
+
+# Dotenv
+.env
