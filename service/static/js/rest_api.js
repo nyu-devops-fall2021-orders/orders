@@ -128,7 +128,6 @@ $(function () {
         var ajax = $.ajax({
             type: "GET",
             url: "/api/orders/" + order_id,
-            contentType: "application/json",
             data: ''
         })
 
@@ -273,7 +272,6 @@ $(function () {
         var ajax = $.ajax({
             type: "GET",
             url: "/api/orders?" + queryString,
-            contentType: "application/json",
             data: ''
         })
 
@@ -376,7 +374,7 @@ $(function () {
 
         var ajax = $.ajax({
             type: "POST",
-            url: "/api/orders/" + orderID + "/items",
+            url: "/api/orders/" + orderid + "/items",
             contentType: "application/json",
             data: JSON.stringify(data),
         });
@@ -414,7 +412,7 @@ $(function () {
 
         var ajax = $.ajax({
             type: "PUT",
-            url: "/api/orders/" + orderID + "/items/" + item_id,
+            url: "/api/orders/" + orderid + "/items/" + item_id,
             contentType: "application/json",
             data: JSON.stringify(data)
         })
@@ -437,7 +435,7 @@ $(function () {
     $("#retrieve-item-btn").click(function () {
 
         var item_id = $("#item_id").val();
-        var order_id = $("#orderID").val();
+        var order_id = $("#orderid").val();
 
         var ajax = $.ajax({
             type: "GET",
@@ -460,12 +458,12 @@ $(function () {
     });
 
     // ****************************************
-    // Delete an Order
+    // Delete an Item
     // ****************************************
 
     $("#delete-item-btn").click(function () {
 
-        var order_id = $("#orderID").val();
+        var order_id = $("#orderid").val();
         var item_id = $("#item_id").val();
 
         var ajax = $.ajax({
@@ -502,7 +500,7 @@ $(function () {
 
     $("#listall-item-btn").click(function () {
 
-        var order_id = $("#orderID").val();
+        var order_id = $("#orderid").val();
         if (order_id != "") {
             var u = "/api/orders/" + order_id + "/items";
         }

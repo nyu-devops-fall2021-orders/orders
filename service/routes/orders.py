@@ -23,6 +23,7 @@ order_create_model = API.inherit(
     order_core_model,
     {
         'items': fields.List(fields.Nested(item_create_model),
+                             required=False,
                              description='The items that the order contains'),
     }
 )
@@ -32,6 +33,7 @@ order_model = API.inherit(
     order_core_model,
     {
         'items': fields.List(fields.Nested(item_model),
+                             required=False,
                              description='The items that the order contains'),
         'id': fields.Integer(readOnly=True,
                              description='The unique id assigned internally by service'),
@@ -101,7 +103,7 @@ class OrderResource(Resource):
                   f"Order with id [{order_id}] was not found.")
         data = API.payload
         APP.logger.debug("Payload = %s", data)
-        # Remove order items because we do not want to update them through this endpoint
+        # Remove items because we do not want to update them through this endpoint
         if "items" in data:
             del data["items"]
         order.deserialize(data)

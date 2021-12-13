@@ -217,7 +217,7 @@ class TestYourResourceServer(TestCase):
     # Items
 
     def test_get_item_list(self):
-        """ Get a list of order items """
+        """ Get a list of items """
         # add two itemes to account
         order = self._create_orders(1)[0]
         item_list = ItemFactory.create_batch(2)
@@ -265,8 +265,8 @@ class TestYourResourceServer(TestCase):
         self.assertEqual(data["price"], item.price)
 
     def test_get_item(self):
-        """ Get an order item from an order """
-        # create a known order item
+        """ Get an item from an order """
+        # create a known item
         order = self._create_orders(1)[0]
         item = ItemFactory()
         resp = self.APP.post(
@@ -329,7 +329,7 @@ class TestYourResourceServer(TestCase):
         self.assertEqual(data["product_id"], 123)
 
     def test_delete_item(self):
-        """ Delete an order item """
+        """ Delete an item """
         order = self._create_orders(1)[0]
         item = ItemFactory()
         resp = self.APP.post(

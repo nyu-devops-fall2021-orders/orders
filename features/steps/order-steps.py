@@ -23,15 +23,18 @@ def step_impl(context):
     """ Delete all Orders and load new ones """
     headers = {'Content-Type': 'application/json'}
 
-    context.resp = requests.get(context.base_url + '/order', headers=headers)
+    context.resp = requests.get(
+        context.base_url + '/api/orders')
+    print(context.base_url + '/api/orders')
+    print(context.resp)
     expect(context.resp.status_code).to_equal(200)
 
     for order in context.resp.json():
         context.resp = requests.delete(
-            context.base_url + '/order/' + str(order["id"]), headers=headers)
+            context.base_url + '/api/orders/' + str(order["id"]), headers=headers)
         expect(context.resp.status_code).to_equal(204)
 
-    create_url = context.base_url + '/order'
+    create_url = context.base_url + '/api/orders'
     for row in context.table:
         data = {
             "tracking_id": row['tracking_id'],
@@ -40,25 +43,24 @@ def step_impl(context):
         }
         payload = json.dumps(data)
         context.resp = requests.post(create_url, data=payload, headers=headers)
+        print("post response:", context.resp)
         context.order_ids["customer_id"] = context.resp.json()["id"]
         expect(context.resp.status_code).to_equal(201)
 
 
-@given('the following orderitems')
+@given('the following items')
 def step_impl(context):
-    """ Delete all Orderitems and load new ones """
+    """ Delete all items and load new ones """
     headers = {'Content-Type': 'application/json'}
 
     context.resp = requests.get(
-        context.base_url + '/listorderitems', headers=headers)
+        context.base_url + '/api/items')
     expect(context.resp.status_code).to_equal(200)
 
-    for orderitem in context.resp.json():
-        context.resp = requests.delete(context.base_url + str(
-            orderitem["order_id"]) + '/orderitem/' + str(orderitem["id"]), headers=headers)
+    for item in context.resp.json():
+        context.resp = requests.delete(context.base_url + '/api/orders/' + str(
+            item["order_id"]) + '/items/' + str(item["id"]), headers=headers)
         expect(context.resp.status_code).to_equal(204)
-
-    create_url = context.base_url
 
     for row in context.table:
         print(row)
@@ -71,7 +73,8 @@ def step_impl(context):
         data["order_id"] = context.order_ids[row['customer_id']]
         del data["customer_id"]
         payload = json.dumps(data)
-        item_url = create_url + str(data["order_id"]) + "/orderitem"
+        item_url = context.base_url + '/api/orders/' + \
+            str(data["order_id"]) + "/items"
         context.resp = requests.post(item_url, data=payload, headers=headers)
         expect(context.resp.status_code).to_equal(201)
 
@@ -115,6 +118,7 @@ def step_impl(context, element_name):
 def step_impl(context, text, element_name):
     element_id = element_name.lower()
     element = Select(context.driver.find_element_by_id(element_id))
+    print('element', element.options)
     element.select_by_visible_text(text)
 
 
@@ -223,7 +227,7 @@ def step_impl(context, order_id):
     ensure(order_id in element.text, False, error_msg)
 
 
-@then('I should see order item for "{order_id}" in the item results')
+@then('I should see item for "{order_id}" in the item results')
 def step_impl(context, order_id):
     # element = context.driver.find_element_by_id('search_results')
     # expect(element.text).to_contain(name)
@@ -236,7 +240,7 @@ def step_impl(context, order_id):
     expect(found).to_be(True)
 
 
-@then('I should not see order item for "{order_id}" in the item results')
+@then('I should not see item for "{order_id}" in the item results')
 def step_impl(context, order_id):
     element = context.driver.find_element_by_id('search_item_results')
     error_msg = "I should not see '%s' in '%s'" % (order_id, element.text)
