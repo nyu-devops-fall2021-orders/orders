@@ -24,7 +24,8 @@ Feature: The order service back-end
         And I select "Paid" in the "status" dropdown
         And I press the "Create" button
         Then I should see the message "Success"
-        When I copy the "Order_id" field
+        When I wait for "2" seconds
+        And I copy the "Order_id" field
         And I press the "Clear" button
         Then the "Order_id" field should be empty
         And the "Customer_id" field should be empty
@@ -54,6 +55,7 @@ Feature: The order service back-end
     Scenario: Update a Order
         When I visit the "Home Page"
         And I press the "listall" button
+        And I wait for "2" seconds
         And I copy the "Order_id" field
         And I press the "clear" button
         And I paste the "Order_id" field
@@ -62,7 +64,7 @@ Feature: The order service back-end
         And I should see "1001" in the "Tracking_ID" field
         And I should see "CANCELLED" in the "status" field
         When I change "Customer_id" to "203"
-        When I change "Tracking_ID" to "1003"
+        And I change "Tracking_ID" to "1003"
         And I select "Completed" in the "status" dropdown
         And I press the "Update" button
         Then I should see the message "Success"
@@ -73,6 +75,7 @@ Feature: The order service back-end
     Scenario: Create an Item
         When I visit the "Home Page"
         And I press the "listall" button
+        And I wait for "2" seconds
         And I copy the order id in "Order_id" field
         And I press the "clear" button
         And I set the "item_id" to "1"
@@ -81,6 +84,7 @@ Feature: The order service back-end
         And I set the "price" to "10.5"
         And I paste the order id in "orderID" field
         And I press the "Create-item" button
+        And I wait for "2" seconds
         Then I should see the message "Success" in items
         When I copy the "item_id" field
         And I press the "Clear-item" button
@@ -98,6 +102,7 @@ Feature: The order service back-end
     Scenario: List all items
         When I visit the "Home Page"
         And I press the "listall" button
+        And I wait for "2" seconds
         And I copy the order id in "Order_id" field
         And I press the "clear" button
         And I set the "item_id" to "1"
@@ -113,6 +118,7 @@ Feature: The order service back-end
     Scenario: Update an item
         When I visit the "Home Page"
         And I press the "listall" button
+        And I wait for "2" seconds
         And I copy the order id in "Order_id" field
         And I press the "clear" button
         And I set the "item_id" to "1"
@@ -122,6 +128,7 @@ Feature: The order service back-end
         And I paste the order id in "orderID" field
         And I press the "Create-item" button
         And I press the "listall-item" button
+        And I wait for "2" seconds
         And I copy the "item_id" field
         And I copy the order id in "OrderID" field
         And I press the "clear-item" button

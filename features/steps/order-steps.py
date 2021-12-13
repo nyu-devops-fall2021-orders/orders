@@ -7,6 +7,7 @@ For information on Waiting until elements are present in the HTML see:
 from os import getenv
 import logging
 import json
+import time
 import requests
 from behave import *
 from compare import expect, ensure
@@ -303,6 +304,10 @@ def step_impl(context, element_name, text_string):
     )
     element.clear()
     element.send_keys(text_string)
+
+@when('I wait for "{seconds}" seconds')
+def step_impl(context, seconds):
+    time.sleep(float(seconds))
 
 # @when('I change "{key}" to "{value}"')
 # def step_impl(context, key, value):
