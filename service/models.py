@@ -1,5 +1,5 @@
 """
-This module contains the database models for order and order item resources.
+This module contains the database models for order and item resources.
 """
 
 from enum import Enum

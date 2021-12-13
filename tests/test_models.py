@@ -239,7 +239,7 @@ class TestOrderModel(unittest.TestCase):
         self.assertEqual(item.product_id, 2)
 
     def test_delete_account_address(self):
-        """ Delete an order's order item """
+        """ Delete an order's item """
         orders = Order.all()
         self.assertEqual(orders, [])
 

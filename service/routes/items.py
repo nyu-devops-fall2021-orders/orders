@@ -58,7 +58,7 @@ class ItemResource(Resource):
 
         This endpoint will return an Item based on its id
         """
-        APP.logger.info("Request for order item with id [%s]", item_id)
+        APP.logger.info("Request for item with id [%s]", item_id)
         order = Order.find(order_id)
         if not order:
             abort(status.HTTP_404_NOT_FOUND,
@@ -84,7 +84,7 @@ class ItemResource(Resource):
         This endpoint will update an Item based the body that is posted
         """
         APP.logger.info(
-            "Request to update order item with order_id [%s] and item_id [%s]", order_id, item_id)
+            "Request to update item with order_id [%s] and item_id [%s]", order_id, item_id)
         order = Order.find(order_id)
         if not order:
             abort(status.HTTP_404_NOT_FOUND,
