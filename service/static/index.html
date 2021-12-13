@@ -94,9 +94,9 @@
             <thead>
             <tr>
                 <th class="col-md-1">ID</th>
-                <th class="col-md-4">Name</th>
-                <th class="col-md-4">Category</th>
-                <th class="col-md-3">Available</th>
+                <th class="col-md-4">CustomerID</th>
+                <th class="col-md-4">TrackingID</th>
+                <th class="col-md-3">Status</th>
             </tr>
             </thead>
           </table>
@@ -105,15 +105,17 @@
 
      <!-- Order Items Form-->
 
-     <!-- Flash Message -->
-     <div class="table-responsive">
-      <table class="table">
-        <tr><td>Status:</td><td><span id="flash_item_message"></span></td></tr>
-      </table>
-    </div>
+     
 
      <div class="col-md-12" id="form_data">
       Create, Retrieve, Update, and Delete an Order Item:
+
+        <!-- Flash Message -->
+      <div class="table-responsive">
+        <table class="table">
+          <tr><td>Status:</td><td><span id="flash_item_message"></span></td></tr>
+        </table>
+      </div>
       <div class="well">
         <div class="form-horizontal">
           <div class="form-group">
@@ -149,9 +151,9 @@
             </div>
           </div>
           <div class="form-group">
-            <label class="control-label col-sm-2" for="orderID">Order ID:</label>
+            <label class="control-label col-sm-2" for="orderid">Order ID:</label>
             <div class="col-sm-10">
-              <input type="text" class="form-control" id="orderID" placeholder="Order ID for Order item (List Order Items - returns all items of an order)">
+              <input type="text" class="form-control" id="orderid" placeholder="Order ID for Order item (List Order Items - returns all items of an order)">
             </div>
           </div>
           

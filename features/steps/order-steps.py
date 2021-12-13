@@ -21,18 +21,55 @@ WAIT_SECONDS = int(getenv('WAIT_SECONDS', '60'))
 def step_impl(context):
     """ Delete all Orders and load new ones """
     headers = {'Content-Type': 'application/json'}
-    context.resp = requests.delete(context.base_url + '/order/reset', headers=headers)
-    expect(context.resp.status_code).to_equal(204)
+    
+    context.resp = requests.get(context.base_url + '/order', headers=headers)
+    expect(context.resp.status_code).to_equal(200)
+    
+
+    for order in context.resp.json():
+        context.resp = requests.delete(context.base_url + '/order/' + str(order["id"]), headers=headers)
+        expect(context.resp.status_code).to_equal(204)
+    
     create_url = context.base_url + '/order'
     for row in context.table:
         data = {
-            "order_id": row['id'],
             "tracking_id": row['tracking_id'],
             "customer_id": row['customer_id'],
-            "status": row['status'] in ['Cancelled', 'cancelled', 'Created', 'created','Paid', 'paid']
+            "status": row['status']
             }
         payload = json.dumps(data)
         context.resp = requests.post(create_url, data=payload, headers=headers)
+        context.order_ids["customer_id"] = context.resp.json()["id"]
+        expect(context.resp.status_code).to_equal(201)
+
+@given('the following orderitems')
+def step_impl(context):
+    """ Delete all Orderitems and load new ones """
+    headers = {'Content-Type': 'application/json'}
+    
+    context.resp = requests.get(context.base_url + '/listorderitems', headers=headers)
+    expect(context.resp.status_code).to_equal(200)
+
+
+    for orderitem in context.resp.json():
+        context.resp = requests.delete(context.base_url + str(orderitem["order_id"]) + '/orderitem/' + str(orderitem["id"]), headers=headers)
+        expect(context.resp.status_code).to_equal(204)
+    
+    create_url = context.base_url
+
+    for row in context.table:
+        print(row)
+        data = {
+            "customer_id": row['customer_id'],
+            "product_id": row['product_id'],
+            "quantity": row['quantity'],
+            "price": row['price']
+            }
+        data["order_id"] = context.order_ids[row['customer_id']]
+        del data["customer_id"]
+        payload = json.dumps(data)
+        item_url = create_url + str(data["order_id"]) + "/orderitem" 
+        context.resp = requests.post(item_url, data=payload, headers=headers)
         expect(context.resp.status_code).to_equal(201)
 
 @when('I visit the "home page"')
@@ -58,6 +95,12 @@ def step_impl(context, element_name, text_string):
     element = context.driver.find_element_by_id(element_id)
     element.clear()
     element.send_keys(text_string)
+
+@when('I set the "{element_name}" radio option')
+def step_impl(context, element_name):
+    element_id =  element_name.lower()
+    selector_text = "input[type='radio'][value='" + element_id + "']"
+    context.driver.find_element_by_css_selector(selector_text).click()
 
 @when('I select "{text}" in the "{element_name}" dropdown')
 def step_impl(context, text, element_name):
@@ -87,7 +130,9 @@ def step_impl(context, element_name):
     element = WebDriverWait(context.driver, WAIT_SECONDS).until(
         expected_conditions.presence_of_element_located((By.ID, element_id))
     )
+    print("copied value: ", element.get_attribute('value'))
     context.clipboard = element.get_attribute('value')
+    
     logging.info('Clipboard contains: %s', context.clipboard)
 
 @when('I paste the "{element_name}" field')
@@ -97,9 +142,35 @@ def step_impl(context, element_name):
     element = WebDriverWait(context.driver, WAIT_SECONDS).until(
         expected_conditions.presence_of_element_located((By.ID, element_id))
     )
+    print("pasted value: ", context.clipboard)
     element.clear()
     element.send_keys(context.clipboard)
 
+##################################################################
+# These two function simulate copy and paste order ids specifically
+##################################################################
+@when('I copy the order id in "{element_name}" field')
+def step_impl(context, element_name):
+    element_id =  element_name.lower()
+    # element = context.driver.find_element_by_id(element_id)
+    element = WebDriverWait(context.driver, WAIT_SECONDS).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    print("copied value: ", element.get_attribute('value'))
+    context.clipboard_order = element.get_attribute('value')
+    
+    logging.info('Clipboard contains: %s', context.clipboard_order)
+
+@when('I paste the order id in "{element_name}" field')
+def step_impl(context, element_name):
+    element_id =  element_name.lower()
+    # element = context.driver.find_element_by_id(element_id)
+    element = WebDriverWait(context.driver, WAIT_SECONDS).until(
+        expected_conditions.presence_of_element_located((By.ID, element_id))
+    )
+    print("pasted value: ", context.clipboard_order)
+    element.clear()
+    element.send_keys(context.clipboard_order)
 ##################################################################
 # This code works because of the following naming convention:
 # The buttons have an id in the html hat is the button text
@@ -113,23 +184,42 @@ def step_impl(context, button):
     button_id = button.lower() + '-btn'
     context.driver.find_element_by_id(button_id).click()
 
-@then('I should see order for order id "{order id}" in the results')
-def step_impl(context, name):
+@then('I should see order for "{order_id}" in the results')
+def step_impl(context, order_id):
     # element = context.driver.find_element_by_id('search_results')
     # expect(element.text).to_contain(name)
     found = WebDriverWait(context.driver, WAIT_SECONDS).until(
         expected_conditions.text_to_be_present_in_element(
             (By.ID, 'search_results'),
-            name
+            order_id
         )
     )
     expect(found).to_be(True)
 
-@then('I should not see order for "{order id}" in the results')
-def step_impl(context, name):
+@then('I should not see order for "{order_id}" in the results')
+def step_impl(context, order_id):
     element = context.driver.find_element_by_id('search_results')
-    error_msg = "I should not see '%s' in '%s'" % (name, element.text)
-    ensure(name in element.text, False, error_msg)
+    error_msg = "I should not see '%s' in '%s'" % (order_id, element.text)
+    ensure(order_id in element.text, False, error_msg)
+
+@then('I should see order item for "{order_id}" in the item results')
+def step_impl(context, order_id):
+    # element = context.driver.find_element_by_id('search_results')
+    # expect(element.text).to_contain(name)
+    found = WebDriverWait(context.driver, WAIT_SECONDS).until(
+        expected_conditions.text_to_be_present_in_element(
+            (By.ID, 'search_item_results'),
+            order_id
+        )
+    )
+    expect(found).to_be(True)
+
+@then('I should not see order item for "{order_id}" in the item results')
+def step_impl(context, order_id):
+    element = context.driver.find_element_by_id('search_item_results')
+    error_msg = "I should not see '%s' in '%s'" % (order_id, element.text)
+    ensure(order_id in element.text, False, error_msg)
+
 
 @then('I should see the message "{message}"')
 def step_impl(context, message):
@@ -138,6 +228,18 @@ def step_impl(context, message):
     found = WebDriverWait(context.driver, WAIT_SECONDS).until(
         expected_conditions.text_to_be_present_in_element(
             (By.ID, 'flash_message'),
+            message
+        )
+    )
+    expect(found).to_be(True)
+
+@then('I should see the message "{message}" in items')
+def step_impl(context, message):
+    # element = context.driver.find_element_by_id('flash_message')
+    # expect(element.text).to_contain(message)
+    found = WebDriverWait(context.driver, WAIT_SECONDS).until(
+        expected_conditions.text_to_be_present_in_element(
+            (By.ID, 'flash_item_message'),
             message
         )
     )
@@ -182,5 +284,6 @@ def step_impl(context, element_name, text_string):
 #     """ Check a field for text """
 #     element = context.driver.find_element_by_id(field)
 #     assert message in element.text
+
 
 
