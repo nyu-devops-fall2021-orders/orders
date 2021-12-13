@@ -337,7 +337,7 @@ $(function () {
         $("#product_id").val(res.product_id);
         $("#quantity").val(res.quantity);
         $("#price").val(res.price);
-        $("#orderID").val(res.order_id);
+        $("#orderid").val(res.order_id);
     }
 
     /// Clears all form fields
@@ -345,7 +345,7 @@ $(function () {
         $("#product_id").val("");
         $("#quantity").val("");
         $("#price").val("");
-        $("#orderID").val("");
+        $("#orderid").val("");
     }
 
     // Updates the flash message area
@@ -364,14 +364,14 @@ $(function () {
         var product_id = $("#product_id").val();
         var quantity = $("#quantity").val();
         var price = $("#price").val();
-        var orderID = $("#orderID").val();
+        var orderid = $("#orderid").val();
 
         var data = {
             "id": item_id,
             "product_id": product_id,
             "quantity": quantity,
             "price": price,
-            "orderID": orderID
+            "orderid": orderid
         };
 
         var ajax = $.ajax({
@@ -402,14 +402,14 @@ $(function () {
         var product_id = $("#product_id").val();
         var quantity = $("#quantity").val();
         var price = $("#price").val();
-        var orderID = $("#orderID").val();
+        var orderid = $("#orderid").val();
 
         var data = {
             "id": item_id,
             "product_id": product_id,
             "quantity": quantity,
             "price": price,
-            "orderID": orderID
+            "orderid": orderid
         };
 
         var ajax = $.ajax({
