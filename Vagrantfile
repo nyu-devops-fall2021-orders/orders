@@ -140,7 +140,7 @@ Vagrant.configure(2) do |config|
     echo "\n"
     echo "ic login -a https://cloud.ibm.com --apikey @apikey.json -r us-south"
     echo "ic target --cf"
-    echo "ic cf cups ElephantSQL -p '{"url":"postgres://yznzmwyl:A77FSNstHNz6VutIZ4dz6rECXqG-fDed@fanny.db.elephantsql.com/yznzmwyl"}'"
+    echo "ic cf cups ElephantSQL -p '{"url":"postgres://hilzqnlw:XjLx5PDpsRSSBS5AiHGSxFPu9NZxUp0v@castor.db.elephantsql.com/hilzqnlw"}'"
     echo "\n************************************"
     # Show the GUI URL for Couch DB
     echo "\n"
