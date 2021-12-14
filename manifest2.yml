@@ -1,0 +1,18 @@
+---
+# This manifest deploys a Python Flask application with an ElephantSQL database
+applications:
+  - name: orders-prod
+    path: .
+    instances: 1
+    memory: 128M
+    routes:
+      - route: orders-prod.us-south.cf.appdomain.cloud
+    disk_quota: 1024M
+    buildpacks:
+      - python_buildpack
+    timeout: 180
+    services:
+      - ElephantSQL-prod
+    env:
+      FLASK_APP: service:APP
+      FLASK_DEBUG: false
