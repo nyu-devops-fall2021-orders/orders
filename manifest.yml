@@ -11,6 +11,8 @@ applications:
     buildpacks:
       - python_buildpack
     timeout: 180
+    services:
+      - HerokuPostgreSQL
     env:
       FLASK_APP: run:APP
       FLASK_DEBUG: false
