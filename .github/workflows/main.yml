@@ -3,11 +3,9 @@ on:
   push:
     branches:
       - main
-      - restx
   pull_request:
     branches:
       - main
-      - restx
 
 jobs:
   build:
