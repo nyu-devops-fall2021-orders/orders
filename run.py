@@ -6,6 +6,8 @@ import sys
 from service import APP
 from service import routes
 
+APP.logger.info("Starting with DATABASE_URI=%s", APP.config['DATABASE_URI'])
+
 try:
     routes.common.init_db()  # make our sqlalchemy tables
 except Exception as error:  # pylint: disable=broad-except
