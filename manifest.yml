@@ -1,7 +1,7 @@
 ---
 # This manifest deploys a Python Flask application with an ElephantSQL database
 applications:
-  - name: orders
+  - name: orders-dev
     path: .
     instances: 1
     memory: 128M
