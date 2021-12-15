@@ -43,7 +43,8 @@ jobs:
         run: |
           nosetests
           pwd
-          ls
+          ls -a
+          cat .coverage
         env:
           DATABASE_URI: "postgres://postgres:postgres@postgres:5432/testdb"
 
