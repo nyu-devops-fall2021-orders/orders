@@ -142,3 +142,6 @@ thumbs.db
 
 # Dotenv
 .env
+
+#Bluemix
+.bluemix
