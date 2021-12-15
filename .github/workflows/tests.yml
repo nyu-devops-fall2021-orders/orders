@@ -44,9 +44,6 @@ jobs:
         env:
           DATABASE_URI: "postgres://postgres:postgres@postgres:5432/testdb"
 
-      - name: Run Pylint
-        run: pylint --load-plugins "pylint_flask_sqlalchemy, pylint_flask" service tests/test_routes.py tests/test_models.py run.py
-
       - name: Upload coverage to Codecov
         uses: codecov/codecov-action@v2
         with:
