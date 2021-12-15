@@ -9,8 +9,8 @@ import logging
 from urllib.parse import quote_plus
 from unittest import TestCase
 from factories import ItemFactory
-from service.models import db, Order, Item, OrderStatus
-from service.routes.common import init_db
+from service.models import DatabaseConnectionError, db, Order, Item, OrderStatus
+from service.routes.common import init_db, request_validation_error, database_connection_error
 from service import APP, status
 
 DATABASE_URI = os.getenv(
@@ -18,6 +18,7 @@ DATABASE_URI = os.getenv(
 )
 
 BASE_URL = "/api/orders"
+LIST_ITEMS_URL = "/api/items"
 
 ######################################################################
 #  T E S T   C A S E S
@@ -375,7 +376,6 @@ class TestYourResourceServer(TestCase):
         """ Query Orders by Customer """
         orders = self._create_orders(10)
         test_customer_id = orders[0].customer_id
-        print('type is', type(test_customer_id))
         customer_id_orders = [
             order for order in orders if order.customer_id == test_customer_id]
         resp = self.APP.get(
@@ -387,3 +387,95 @@ class TestYourResourceServer(TestCase):
         # check the data just to be sure
         for order in data:
             self.assertEqual(order["customer_id"], test_customer_id)
+
+    def test_request_validation_error(self):
+        """ Check the body of request validation error """
+        try:
+            raise ValueError
+        except ValueError as error:
+            error_response, status_code = request_validation_error(error)
+            self.assertEqual(status_code,
+                             status.HTTP_400_BAD_REQUEST)
+            self.assertEqual(error_response['error'],
+                             'Bad Request')
+
+    def test_database_validation_error(self):
+        """ Check the body of database connection error """
+        try:
+            raise DatabaseConnectionError
+        except DatabaseConnectionError as error:
+            error_response, status_code = database_connection_error(error)
+            self.assertEqual(status_code,
+                             status.HTTP_503_SERVICE_UNAVAILABLE)
+            self.assertEqual(error_response['error'],
+                             'Service Unavailable')
+
+    def test_get_nonexistent_order(self):
+        """ Check fetch nonexistent order """
+        order_id = 1
+        resp = self.APP.get(
+            f"{BASE_URL}/{order_id}",
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_item_nonexistent_order(self):
+        """ Check fetch item from nonexistent order """
+        order_id = 1
+        item_id = 1
+        resp = self.APP.get(
+            f"{BASE_URL}/{order_id}/items/{item_id}",
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_get_nonexistent_item(self):
+        """ Check fetch nonexistent item """
+        self._create_orders(1)
+        order_id = 1
+        resp = self.APP.get(
+            f"{BASE_URL}/{order_id}",
+            content_type="application/json"
+        )
+        order = Order()
+        order.deserialize(resp.get_json())
+        self.assertEqual(order.id, 1)
+
+        item_id = 1
+        resp = self.APP.get(
+            f"{BASE_URL}/{order_id}/items/{item_id}",
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_404_NOT_FOUND)
+
+    def test_all_item_list(self):
+        """ Get a list of all items """
+        # add two itemes to account
+        [order_1, order_2] = self._create_orders(2)
+        item_list = ItemFactory.create_batch(2)
+
+        # Create item 1
+        resp = self.APP.post(
+            f"{BASE_URL}/{order_1.id}/items",
+            json=item_list[0].serialize(),
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # Create item 2
+        resp = self.APP.post(
+            f"{BASE_URL}/{order_2.id}/items",
+            json=item_list[1].serialize(),
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_201_CREATED)
+
+        # get the list back and make sure there are 2
+        resp = self.APP.get(
+            LIST_ITEMS_URL,
+            content_type="application/json"
+        )
+        self.assertEqual(resp.status_code, status.HTTP_200_OK)
+
+        data = resp.get_json()
+        self.assertEqual(len(data), 2)

@@ -119,7 +119,6 @@ def step_impl(context, element_name):
 def step_impl(context, text, element_name):
     element_id = element_name.lower()
     element = Select(context.driver.find_element_by_id(element_id))
-    print('element', element.options)
     element.select_by_visible_text(text)
 
 
@@ -304,6 +303,7 @@ def step_impl(context, element_name, text_string):
     )
     element.clear()
     element.send_keys(text_string)
+
 
 @when('I wait for "{seconds}" seconds')
 def step_impl(context, seconds):
