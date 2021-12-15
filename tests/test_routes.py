@@ -26,6 +26,7 @@ LIST_ITEMS_URL = "/api/items"
 
 
 class TestYourResourceServer(TestCase):
+    # pylint: disable=too-many-public-methods
     """ REST API Server Tests """
 
     @classmethod
@@ -451,7 +452,9 @@ class TestYourResourceServer(TestCase):
     def test_all_item_list(self):
         """ Get a list of all items """
         # add one item each to two orders
-        [order_1, order_2] = self._create_orders(2)
+        orders = self._create_orders(2)
+        order_1 = orders[0]
+        order_2 = orders[1]
         item_list = ItemFactory.create_batch(2)
 
         # Create item 1
