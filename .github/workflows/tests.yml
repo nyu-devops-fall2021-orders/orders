@@ -52,6 +52,3 @@ jobs:
         uses: codecov/codecov-action@v2
         with:
           token: ${{ secrets.CODECOV_TOKEN }}
-
-      - name: Check file
-        run: cat coverage.xml
