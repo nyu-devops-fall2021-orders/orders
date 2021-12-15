@@ -158,7 +158,7 @@ class TestYourResourceServer(TestCase):
 
     def test_update_order(self):
         """ Update an existing order """
-        # create an Account to update
+        # create an Order to update
         item = Item(product_id=1, quantity=1, price=5, order_id=1)
         order = Order(customer_id=1, tracking_id=1,
                       status=OrderStatus.CREATED, items=[item])
@@ -182,7 +182,7 @@ class TestYourResourceServer(TestCase):
         self.assertEqual(updated_order["customer_id"], 456)
 
     def test_delete_order(self):
-        """ Delete an Account """
+        """ Delete an Order """
         # get the id of an order
         order = self._create_orders(1)[0]
         resp = self.APP.delete(
@@ -219,7 +219,7 @@ class TestYourResourceServer(TestCase):
 
     def test_get_item_list(self):
         """ Get a list of items """
-        # add two itemes to account
+        # add two items to single order
         order = self._create_orders(1)[0]
         item_list = ItemFactory.create_batch(2)
 
@@ -294,7 +294,7 @@ class TestYourResourceServer(TestCase):
         self.assertEqual(data["price"], item.price)
 
     def test_update_item(self):
-        """ Update an item on an account """
+        """ Update an item """
         # create a known item
         order = self._create_orders(1)[0]
         item = ItemFactory()
@@ -450,7 +450,7 @@ class TestYourResourceServer(TestCase):
 
     def test_all_item_list(self):
         """ Get a list of all items """
-        # add two itemes to account
+        # add one item each to two orders
         [order_1, order_2] = self._create_orders(2)
         item_list = ItemFactory.create_batch(2)
 
